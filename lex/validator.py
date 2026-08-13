@@ -82,31 +82,37 @@ def contextes(
     loi: Loi,
     pool: Sequence[Carte],
     rng: random.Random,
+    depart: Carte,
     n: int = N_CONTEXTES,
     profondeur_max: int = PROFONDEUR_MAX,
 ) -> tuple[tuple[Carte, ...], ...]:
     """Lignes que le joueur peut reellement rencontrer sous cette loi.
 
+    TOUTES partent de `depart`, la carte reellement distribuee. C'est la
+    correction d'un bug trouve en jouant : on tirait auparavant un depart au
+    hasard a chaque echantillon, ce qui mesurait « deductible depuis UN
+    depart » au lieu de « deductible depuis CE depart ». Avec une clause du
+    type « meme couleur que la precedente », un depart rouge verrouille la
+    ligne sur le rouge, et une seconde clause portant sur une enseigne noire
+    devient strictement inobservable — alors que l'echantillonnage aleatoire
+    la voyait parfaitement.
+
     La premiere carte est distribuee (elle n'a pas a etre acceptee), les
-    suivantes doivent l'etre : la loi contraint ses propres contextes, et
-    c'est precisement ce qui rend l'analyse honnete.
+    suivantes doivent l'etre : la loi contraint ses propres contextes.
     """
     vus: set[tuple[Carte, ...]] = set()
     out: list[tuple[Carte, ...]] = []
-    for _ in range(n * 20):
+    for _ in range(n * 40):
         if len(out) >= n:
             break
-        ligne = [rng.choice(pool)]
-        cible = rng.randint(1, profondeur_max)
-        viable = True
-        while len(ligne) < cible:
+        ligne = [depart]
+        for _ in range(rng.randint(0, profondeur_max - 1)):
             cands = [c for c in pool if loi.accepte(ligne, c)]
             if not cands:
-                viable = False
                 break
             ligne.append(rng.choice(cands))
         cle = tuple(ligne)
-        if viable and cle not in vus:
+        if cle not in vus:
             vus.add(cle)
             out.append(cle)
     return tuple(out)
@@ -150,14 +156,19 @@ def analyser(
     pool: Sequence[Carte],
     dims: Sequence[str],
     rng: random.Random,
+    depart: Carte,
     complet: bool = True,
 ) -> Rapport:
-    """Verdict sur une loi. `complet=False` s'arrete apres les controles bon
-    marche (permissivite, temoins) : c'est ce que fait le generateur pour ne
-    pas payer l'enumeration de l'espace d'hypotheses sur des candidats qui
-    echouent de toute facon au calibrage."""
+    """Verdict sur un couple (loi, carte de depart). Les deux sont indissociables :
+    une meme loi peut etre parfaitement deductible depuis un depart et
+    partiellement inobservable depuis un autre.
+
+    `complet=False` s'arrete apres les controles bon marche (permissivite,
+    temoins) : c'est ce que fait le generateur pour ne pas payer l'enumeration
+    de l'espace d'hypotheses sur des candidats qui echouent de toute facon au
+    calibrage."""
     rap = Rapport()
-    ctxs = contextes(loi, pool, rng)
+    ctxs = contextes(loi, pool, rng, depart)
     rap.n_contextes = len(ctxs)
     if not ctxs:
         rap.rejeter("aucun contexte atteignable")
@@ -290,6 +301,7 @@ def _main(argv: Sequence[str] | None = None) -> int:
     donne = generer(seed=args.seed, n_clauses=args.clauses)
     rap = donne.rapport
     print(f"graine        : {donne.seed}")
+    print(f"départ        : {donne.demarrage}")
     print(f"dimensions    : {', '.join(donne.dims)}")
     print(f"loi           :")
     print(donne.loi.texte() if len(donne.loi) > 1 else f"  {donne.loi.texte()}")
@@ -319,7 +331,7 @@ def _balayage(args) -> int:
     reussites = 0
     for _ in range(args.balayage):
         clauses = tuple(rng.sample(cat, args.clauses))
-        rap = analyser(Loi(clauses), pool, DIMS_DEFAUT, rng, complet=True)
+        rap = analyser(Loi(clauses), pool, DIMS_DEFAUT, rng, rng.choice(pool), complet=True)
         if rap.ok:
             reussites += 1
             compte["ACCEPTEE"] += 1

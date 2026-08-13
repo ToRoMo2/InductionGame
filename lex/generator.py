@@ -20,9 +20,10 @@ from typing import Sequence
 from .bricks import catalogue
 from .cards import DIMS_DEFAUT, Carte, construire_pool
 from .law import Loi
-from .validator import PERM_PLANCHER, Rapport, analyser
+from .validator import Rapport, analyser
 
 TENTATIVES = 400
+DEPARTS_ESSAYES = 6  # departs distincts testes par loi candidate
 
 
 @dataclass(frozen=True)
@@ -55,40 +56,30 @@ def generer(
             clauses = tuple(rng.sample(cat, taille))
             loi = Loi(clauses)
 
-            # etage 1 : controles bon marche (permissivite, temoins). La
-            # plupart des candidats meurent ici, et on evite ainsi de payer
-            # l'enumeration de l'espace d'hypotheses pour rien.
-            rap = analyser(loi, pool, dims, rng, complet=False)
-            if not rap.ok:
-                continue
+            # La carte de depart fait partie de ce qu'on valide. Une meme loi
+            # peut etre deductible depuis un depart et pas depuis un autre :
+            # « meme couleur que la precedente » verrouille la ligne sur la
+            # couleur du depart, ce qui peut rendre une autre clause
+            # inobservable. On essaie donc plusieurs departs avant d'abandonner
+            # la loi.
+            for depart in rng.sample(pool, DEPARTS_ESSAYES):
+                # etage 1 : controles bon marche (permissivite, temoins). La
+                # plupart des candidats meurent ici, et on evite ainsi de payer
+                # l'enumeration de l'espace d'hypotheses pour rien.
+                rap = analyser(loi, pool, dims, rng, depart, complet=False)
+                if not rap.ok:
+                    continue
 
-            # etage 2 : identifiabilite exacte sur toute la grammaire.
-            rap = analyser(loi, pool, dims, rng, complet=True)
-            if not rap.ok:
-                continue
+                # etage 2 : identifiabilite exacte sur toute la grammaire.
+                rap = analyser(loi, pool, dims, rng, depart, complet=True)
+                if not rap.ok:
+                    continue
 
-            loi = rap.representant or loi
-            demarrage = _demarrage(loi, pool, rng)
-            if demarrage is None:
-                continue
-            return Donne(loi, pool, demarrage, rap, seed, dims)
+                return Donne(rap.representant or loi, pool, depart, rap, seed, dims)
 
     raise RuntimeError(
         f"aucune loi valide trouvee en {tentatives} tentatives (graine {seed})"
     )
-
-
-def _demarrage(loi: Loi, pool: Sequence[Carte], rng: random.Random) -> Carte | None:
-    """La carte distribuee au depart. Elle n'a pas a satisfaire la loi (c'est
-    la carte du donneur, comme a Eleusis) mais elle ne doit pas ouvrir sur un
-    contexte mort."""
-    candidats = list(pool)
-    rng.shuffle(candidats)
-    for c in candidats:
-        jouables = sum(1 for x in pool if loi.accepte([c], x))
-        if jouables / len(pool) >= PERM_PLANCHER:
-            return c
-    return None
 
 
 def _main(argv: Sequence[str] | None = None) -> int:
