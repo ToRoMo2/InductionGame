@@ -43,10 +43,16 @@ class Resolution:
     loi_declaree: Loi | None = None
     loi_juste: bool = False
     points_loi: int = 0
+    essais_restants: int = 0
+    multiplicateur: float = 1.0
+
+    @property
+    def base(self) -> int:
+        return self.points_suite + self.points_loi
 
     @property
     def points(self) -> int:
-        return self.points_suite + self.points_loi
+        return round(self.base * self.multiplicateur)
 
 
 @dataclass
@@ -96,6 +102,23 @@ class Partie:
 
     # --- phase B ---
 
+    def multiplicateur(self) -> float:
+        """Les essais economises MULTIPLIENT le score, ils ne s'y ajoutent pas.
+
+        L'addition serait une faute : elle ferait COUTER des points a l'enquete,
+        et permettrait d'empocher le budget entier en declarant n'importe quoi
+        au premier tour. Un multiplicateur sur zero fait zero, donc la mise en
+        friche ne rapporte rien.
+
+        Il s'applique aux pertes autant qu'aux gains. Sans cela, se precipiter
+        serait du gain gratuit — gros si j'ai raison, petit si j'ai tort. Des
+        deux cotes, la vitesse cesse d'etre un bonus et devient un
+        multiplicateur de risque : c'est le §9 sans la boule de neige du §4.
+        """
+        if self.essais <= 0:
+            return 1.0
+        return 1.0 + self.essais_restants / self.essais
+
     def passer_au_pari(self, rng: random.Random | None = None) -> tuple[Carte, ...]:
         if self.phase is not Phase.ENQUETE:
             raise RuntimeError("le pari a deja commence")
@@ -122,6 +145,8 @@ class Partie:
         i = self.donne.loi.valide_suite(suite)
         n = len(suite)
         res = Resolution(i < 0, n, n * n if i < 0 else -(n * n), i)
+        res.essais_restants = self.essais_restants
+        res.multiplicateur = self.multiplicateur()
 
         if loi_declaree is not None:
             res.loi_declaree = loi_declaree

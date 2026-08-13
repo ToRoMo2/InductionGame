@@ -148,6 +148,10 @@ def phase_pari(p: Partie) -> bool:
     print("pas la ligne principale.")
     print(f"Valide : +longueur².   Fausse d'une seule carte : -longueur².")
     print()
+    print(f"MULTIPLICATEUR ×{p.multiplicateur():.2f}"
+          f"  ({p.essais_restants} essais économisés sur {p.essais})")
+    print("Il s'applique au total, gains comme pertes.")
+    print()
     print(f"MAIN ({len(main)} cartes, tirées du paquet) :")
     for c in main:
         print(f"  · {c}")
@@ -362,6 +366,8 @@ def phase_resolution(p: Partie) -> None:
         print()
         print("  (loi non déclarée)")
     print()
+    print(f"  base {r.base:+d}   ×{r.multiplicateur:.2f}"
+          f"   ({r.essais_restants} essais économisés)")
     print(f"  TOTAL   {r.points:+d} points")
     print()
     trait()

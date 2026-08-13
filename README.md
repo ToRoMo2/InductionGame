@@ -51,6 +51,13 @@ Deux paris indépendants, de même mise `longueur²` :
    paramètres), pas dans une liste de lois candidates. Juste, tu doubles ;
    faux, tu perds autant ; refuser ne coûte rien.
 
+Le total est **multiplié** par `1 + essais_restants / budget` (plafond ×2),
+gains comme pertes. Les essais économisés ne s'ajoutent jamais au score :
+l'addition ferait *coûter* des points à l'enquête et permettrait d'empocher le
+budget en déclarant n'importe quoi au premier tour. Un multiplicateur sur zéro
+fait zéro. Appliqué aussi aux pertes, il fait de la vitesse un multiplicateur de
+risque plutôt qu'un bonus — le §9 sans la boule de neige du §4.
+
 La déclaration est jugée sur le **comportement**, jamais sur les mots : une
 formulation que rien d'observable ne distingue de la vraie loi compte juste.
 
