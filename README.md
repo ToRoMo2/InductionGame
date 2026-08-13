@@ -70,6 +70,11 @@ plus tôt, il permettrait l'élimination mécanique que le §6 interdit.
 
 Le nombre de briques n'est jamais annoncé pendant la manche.
 
+La **carte de départ satisfait toujours la loi**. Sur une ligne vide seules les
+clauses absolues mordent, donc la contrainte est légère — mais sans elle, la
+position 0 de la ligne peut contredire la loi et le joueur rejette une
+hypothèse correcte à cause de la carte qu'on lui a donnée (§3 pilier 3).
+
 Les cartes refusées sont listées avec le **numéro d'essai** et la **position de
 la ligne** au moment du refus. Un refus reste vrai pour toujours dans son
 contexte, et le contexte change à chaque acceptation. Comme la ligne ne fait que

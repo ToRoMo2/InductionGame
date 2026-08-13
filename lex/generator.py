@@ -62,7 +62,20 @@ def generer(
             # couleur du depart, ce qui peut rendre une autre clause
             # inobservable. On essaie donc plusieurs departs avant d'abandonner
             # la loi.
-            for depart in rng.sample(pool, DEPARTS_ESSAYES):
+            # Le depart doit satisfaire la loi. Sur une ligne vide seules les
+            # clauses absolues mordent, donc la contrainte est legere — mais
+            # sans elle, la position 0 de la ligne peut contredire la loi et
+            # le joueur rejette une hypothese correcte a cause de la carte
+            # qu'on lui a donnee. §3 pilier 3. Mesure avant correction : 24 %
+            # des manches. Le probleme s'aggrave depuis que la suite du pari
+            # prolonge le depart : il serait la tete d'une sequence notee tout
+            # en etant exempte de la regle qui note cette sequence.
+            conformes = [c for c in pool if loi.accepte([], c)]
+            if not conformes:
+                continue
+            for depart in rng.sample(
+                conformes, min(DEPARTS_ESSAYES, len(conformes))
+            ):
                 # etage 1 : controles bon marche (permissivite, temoins). La
                 # plupart des candidats meurent ici, et on evite ainsi de payer
                 # l'enumeration de l'espace d'hypotheses pour rien.
