@@ -261,6 +261,34 @@ def analyser(
     return rap
 
 
+def equivalentes(
+    a: Loi,
+    b: Loi,
+    pool: Sequence[Carte],
+    rng: random.Random,
+    depart: Carte,
+) -> bool:
+    """Deux lois sont-elles indistinguables sur l'espace que le joueur peut
+    reellement atteindre depuis `depart` ?
+
+    La comparaison est EXTENSIONNELLE, jamais syntaxique : « la parite n'est
+    jamais impair » et « la parite est toujours pair » sont la meme loi, et le
+    joueur qui enonce l'une ne s'est pas trompe. Plus important encore, si deux
+    formulations different mais qu'aucune observation possible ne les separe,
+    le joueur ne peut pas avoir tort de choisir l'une ou l'autre — §3 pilier 3.
+    """
+    ctxs = contextes(a, pool, rng, depart)
+    if not ctxs:
+        return False
+    plein = (1 << (len(ctxs) * len(pool))) - 1
+    ma = mb = plein
+    for c in a.clauses:
+        ma &= masque_clause(c, ctxs, pool)
+    for c in b.clauses:
+        mb &= masque_clause(c, ctxs, pool)
+    return ma == mb
+
+
 def _retenir(classes: dict[int, Loi], m: int, candidate: Loi) -> None:
     """Garde comme representant d'une classe la formulation la plus courte,
     puis la plus breve a lire."""

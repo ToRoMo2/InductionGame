@@ -6,8 +6,11 @@ import argparse
 import random
 from typing import Sequence
 
-from .cards import ATTRIBUTS, ENSEIGNES, NOM_RANG, RANGS, Carte, parser_carte
-from .game import ESSAIS, MAIN_PARI, Partie, Phase, nouvelle_partie
+from .bricks import AVANCES, Clause
+from .cards import (ATTRIBUTS, CATEGORIELS, ENSEIGNES, NOM_RANG, RANGS, Carte,
+                    parser_carte)
+from .game import ESSAIS, Partie, Phase, nouvelle_partie
+from .law import Loi
 
 LARGEUR = 68
 
@@ -177,7 +180,7 @@ def phase_pari(p: Partie) -> bool:
             if not suite:
                 print("  ? une suite vide ne rapporte rien. Ajoute au moins une carte.")
                 continue
-            p.resoudre(suite)
+            p.resoudre(suite, declarer_loi(p.donne.dims))
             return True
 
         carte = parser_carte(saisie, restantes)
@@ -187,6 +190,148 @@ def phase_pari(p: Partie) -> bool:
         restantes.remove(carte)
         suite.append(carte)
     return True
+
+
+# --- declaration de la loi ------------------------------------------------
+
+def _choisir(invite: str, options: Sequence[tuple[str, str]]) -> str | None:
+    """Petit menu numerote. Renvoie None si le joueur renonce."""
+    for i, (_, libelle) in enumerate(options, 1):
+        print(f"    {i}. {libelle}")
+    while True:
+        s = demander(f"  {invite} > ").lower()
+        if s in ("", "annuler", "retour", "abandon"):
+            return None
+        if s.isdigit() and 1 <= int(s) <= len(options):
+            return options[int(s) - 1][0]
+        for cle, libelle in options:
+            if s == cle.lower() or s == libelle.lower():
+                return cle
+        print("  ? choix hors menu.")
+
+
+def _choisir_multi(invite: str, options: Sequence[tuple[str, str]]) -> list[str] | None:
+    for i, (_, libelle) in enumerate(options, 1):
+        print(f"    {i}. {libelle}")
+    while True:
+        s = demander(f"  {invite} (numéros séparés par des virgules) > ").lower()
+        if s in ("", "annuler", "retour", "abandon"):
+            return None
+        jetons = [j.strip() for j in s.replace(" ", ",").split(",") if j.strip()]
+        if jetons and all(j.isdigit() and 1 <= int(j) <= len(options) for j in jetons):
+            return [options[int(j) - 1][0] for j in jetons]
+        print("  ? choix hors menu.")
+
+
+def construire_clause(dims: Sequence[str]) -> Clause | None:
+    """Construit UNE clause par menus successifs.
+
+    On donne au joueur la grammaire (les formes de regles), jamais la liste des
+    lois candidates : le §6 veut que le mystere porte sur quelle loi, pas sur
+    la forme du probleme. Et ce constructeur n'apparait qu'en phase B, une fois
+    l'enquete close — sinon il permettrait l'elimination mecanique que le §6
+    interdit explicitement.
+    """
+    cats = [(d, ATTRIBUTS[d].libelle) for d in CATEGORIELS if d in dims]
+
+    famille = _choisir("famille", [
+        ("absolue", "absolue    — porte sur la carte posée, seule"),
+        ("relation", "relation   — compare à la carte précédente"),
+        ("sequence", "séquence   — interdit une répétition sur la ligne"),
+    ])
+    if famille is None:
+        return None
+
+    if famille == "absolue":
+        nom = _choisir("attribut", cats)
+        if nom is None:
+            return None
+        dom = ATTRIBUTS[nom].domaine
+        interdites = _choisir_multi(
+            "quelles valeurs sont INTERDITES ?", [(v, str(v)) for v in dom]
+        )
+        if not interdites:
+            return None
+        autorisees = tuple(v for v in dom if v not in interdites)
+        if not autorisees:
+            print("  ? tout interdire ne laisse aucune carte jouable.")
+            return None
+        return Clause("absolue", (nom, autorisees))
+
+    if famille == "relation":
+        opts = list(cats) + ([("rang", "le rang")] if "rang" in dims else [])
+        nom = _choisir("attribut", opts)
+        if nom is None:
+            return None
+        if nom == "rang":
+            mode = _choisir("relation", [
+                ("different", "le rang diffère du précédent"),
+                ("avance", "le rang avance de 1 à k rangs (l'as suit le roi)"),
+            ])
+            if mode is None:
+                return None
+            if mode == "avance":
+                k = _choisir("k", [(str(v), f"de 1 à {v} rangs") for v in AVANCES])
+                if k is None:
+                    return None
+                return Clause("relation", ("rang", "avance", int(k)))
+            return Clause("relation", ("rang", "different", None))
+        mode = _choisir("relation", [
+            ("egal", f"{ATTRIBUTS[nom].libelle} est identique au précédent"),
+            ("different", f"{ATTRIBUTS[nom].libelle} diffère du précédent"),
+        ])
+        if mode is None:
+            return None
+        return Clause("relation", (nom, mode, None))
+
+    nom = _choisir("attribut", cats)
+    if nom is None:
+        return None
+    valeur = _choisir(
+        "quelle valeur ne doit pas se répéter ?",
+        [(str(v), str(v)) for v in ATTRIBUTS[nom].domaine],
+    )
+    if valeur is None:
+        return None
+    maxi = _choisir("combien d'affilée au maximum ?", [("1", "une seule"), ("2", "deux")])
+    if maxi is None:
+        return None
+    return Clause("sequence", (nom, valeur, int(maxi)))
+
+
+def declarer_loi(dims: Sequence[str]) -> Loi | None:
+    print()
+    print("DÉCLARATION DE LA LOI  (facultative)")
+    print("C'est un second pari, de même mise que la suite : juste, tu doubles ;")
+    print("faux, tu perds autant. Refuser ne coûte rien.")
+    print()
+    if demander("  Déclarer la loi ? (o/n) > ").lower() not in ("o", "oui", "y", "yes"):
+        return None
+
+    clauses: list[Clause] = []
+    while len(clauses) < 3:
+        print()
+        print(f"  — clause {len(clauses) + 1} —")
+        c = construire_clause(dims)
+        if c is None:
+            if clauses:
+                break
+            print("  déclaration abandonnée.")
+            return None
+        clauses.append(c)
+        print(f"    → {c.texte()}")
+        if demander("  Ajouter une autre clause ? (o/n) > ").lower() not in (
+            "o", "oui", "y", "yes"
+        ):
+            break
+    if not clauses:
+        return None
+    loi = Loi(tuple(clauses))
+    print()
+    print("  Tu déclares :")
+    for c in loi.clauses:
+        print(f"    · {c.texte()}")
+    return loi
 
 
 # --- phase C --------------------------------------------------------------
@@ -200,10 +345,24 @@ def phase_resolution(p: Partie) -> None:
     trait("=")
     print()
     if r.valide:
-        print(f"  SUITE VALIDE — {r.longueur} cartes.   {r.points:+d} points")
+        print(f"  SUITE VALIDE — {r.longueur} cartes.        {r.points_suite:+d}")
     else:
-        print(f"  SUITE INVALIDE — elle casse en position {r.index_faute}.")
-        print(f"  Ta propre ambition te revient dessus.   {r.points:+d} points")
+        print(f"  SUITE INVALIDE — casse en position {r.index_faute}.  {r.points_suite:+d}")
+        print("  Ta propre ambition te revient dessus.")
+    if r.loi_declaree is not None:
+        print()
+        print("  Tu avais déclaré :")
+        for c in r.loi_declaree.clauses:
+            print(f"    · {c.texte()}")
+        if r.loi_juste:
+            print(f"  LOI JUSTE — rien ne pouvait la distinguer.  {r.points_loi:+d}")
+        else:
+            print(f"  LOI FAUSSE.                                 {r.points_loi:+d}")
+    else:
+        print()
+        print("  (loi non déclarée)")
+    print()
+    print(f"  TOTAL   {r.points:+d} points")
     print()
     trait()
     print("LA LOI ÉTAIT :")

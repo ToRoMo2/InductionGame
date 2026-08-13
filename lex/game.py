@@ -21,6 +21,8 @@ from typing import Sequence
 
 from .cards import Carte
 from .generator import Donne, generer
+from .law import Loi
+from .validator import equivalentes
 
 ESSAIS = 20
 MAIN_PARI = 12
@@ -36,8 +38,15 @@ class Phase(Enum):
 class Resolution:
     valide: bool
     longueur: int
-    points: int
+    points_suite: int
     index_faute: int  # -1 si la suite est valide
+    loi_declaree: Loi | None = None
+    loi_juste: bool = False
+    points_loi: int = 0
+
+    @property
+    def points(self) -> int:
+        return self.points_suite + self.points_loi
 
 
 @dataclass
@@ -84,15 +93,37 @@ class Partie:
 
     # --- phase C ---
 
-    def resoudre(self, suite: Sequence[Carte]) -> Resolution:
+    def resoudre(
+        self, suite: Sequence[Carte], loi_declaree: Loi | None = None
+    ) -> Resolution:
+        """La suite et la declaration sont deux paris independants, de meme
+        mise. Enoncer la loi est facultatif : c'est un second risque assume,
+        pas un bonus gratuit — sinon tout le monde tenterait sa chance.
+
+        La declaration est jugee sur le COMPORTEMENT, pas sur les mots : une
+        formulation differente mais indistinguable de la vraie loi compte
+        juste.
+        """
         if self.phase is not Phase.PARI:
             raise RuntimeError("il faut d'abord declarer le pari")
         i = self.donne.loi.valide_suite(suite)
         n = len(suite)
-        points = n * n if i < 0 else -(n * n)
-        self.resolution = Resolution(i < 0, n, points, i)
+        res = Resolution(i < 0, n, n * n if i < 0 else -(n * n), i)
+
+        if loi_declaree is not None:
+            res.loi_declaree = loi_declaree
+            res.loi_juste = equivalentes(
+                self.donne.loi,
+                loi_declaree,
+                self.donne.pool,
+                random.Random(self.donne.seed ^ 0x101),
+                self.donne.demarrage,
+            )
+            res.points_loi = n * n if res.loi_juste else -(n * n)
+
+        self.resolution = res
         self.phase = Phase.FINI
-        return self.resolution
+        return res
 
 
 def nouvelle_partie(

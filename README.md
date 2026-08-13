@@ -41,6 +41,24 @@ motifs de rejet : c'est l'outil pour bouger les seuils de `lex/validator.py`.
 | `game.py` | la manche (phases A/B/C), logique pure |
 | `cli.py` | terminal |
 
+## Le pari
+
+Deux paris indépendants, de même mise `longueur²` :
+
+1. **la suite** — valide, tu encaisses ; une seule carte fausse, la valeur se
+   retourne contre toi ;
+2. **la loi** — facultatif. Tu la construis par menus (famille → attribut →
+   paramètres), pas dans une liste de lois candidates. Juste, tu doubles ;
+   faux, tu perds autant ; refuser ne coûte rien.
+
+La déclaration est jugée sur le **comportement**, jamais sur les mots : une
+formulation que rien d'observable ne distingue de la vraie loi compte juste.
+
+Le constructeur n'apparaît qu'en phase B, une fois l'enquête close — disponible
+plus tôt, il permettrait l'élimination mécanique que le §6 interdit.
+
+Le nombre de briques n'est jamais annoncé pendant la manche.
+
 ## La testabilité (§5.2)
 
 Le cahier des charges formule la contrainte en fréquence. Le vrai danger est le
@@ -53,5 +71,11 @@ Le validateur encode le comportement de chaque clause sur
 l'énumération exacte des ~1700 lois de la grammaire quasi gratuite. Il vérifie
 alors que chaque clause dispose d'assez de **témoins pivots** — des refus dont
 elle est la seule responsable.
+
+Tous les contextes partent de la **carte de départ réelle**. Une même loi peut
+être déductible depuis un départ et partiellement inobservable depuis un autre :
+« même couleur que la précédente » verrouille la ligne sur la couleur du départ,
+ce qui peut rendre une seconde clause invisible pour toute la manche. La carte
+de départ fait donc partie de ce que le générateur valide.
 
 Limites détaillées en tête de `lex/validator.py`.
