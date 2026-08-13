@@ -1,7 +1,7 @@
 # InductionGame
 
 Prototype console du jeu d'induction **LEX**. Voir
-`cahier-des-charges-jeu-induction (1).md` pour la spec complète.
+`cahier-des-charges-jeu-induction.md` pour la spec complète.
 
 Périmètre actuel : **§13 uniquement** — phase 0. Une manche isolée, terminal,
 texte brut, stdlib seule. Pas de run, pas d'objets, pas de méta-progression,
