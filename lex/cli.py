@@ -301,7 +301,15 @@ def construire_clause(dims: Sequence[str]) -> Clause | None:
     )
     if valeur is None:
         return None
-    maxi = _choisir("combien d'affilée au maximum ?", [("1", "une seule"), ("2", "deux")])
+    # Les options sont la phrase finale, pas un compte abstrait. « combien
+    # d'affilee au maximum ? » avec « une seule / deux » a fait choisir 2 a un
+    # joueur qui voulait « jamais deux d'affilee » : il pensait au nombre
+    # INTERDIT, le menu demandait le nombre AUTORISE. Loi juste, declaration
+    # fausse, 72 points perdus sur une tournure.
+    maxi = _choisir("laquelle ?", [
+        ("1", f"jamais deux « {valeur} » d'affilée"),
+        ("2", f"jamais plus de deux « {valeur} » d'affilée"),
+    ])
     if maxi is None:
         return None
     return Clause("sequence", (nom, valeur, int(maxi)))
