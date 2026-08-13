@@ -7,10 +7,10 @@ import random
 from typing import Sequence
 
 from .bricks import AVANCES, Clause
-from .cards import (ATTRIBUTS, CATEGORIELS, ENSEIGNES, NOM_RANG, RANGS, Carte,
-                    parser_carte)
+from .cards import ATTRIBUTS, CATEGORIELS, Carte, lire_description
 from .game import ESSAIS, Partie, Phase, nouvelle_partie
 from .law import Loi
+from .probe import cout_jumelle, jumelle, tirer
 
 LARGEUR = 68
 
@@ -21,33 +21,6 @@ ETROIT = False
 
 def trait(c: str = "-") -> None:
     print(c * (34 if ETROIT else LARGEUR))
-
-
-def afficher_pool(pool: Sequence[Carte]) -> None:
-    """Grille rang x enseigne. Tout est visible : en phase 0 il n'y a pas de
-    geste de manipulation, donc les attributs caches sont ecrits en clair."""
-    print()
-    index = {(c.rang, c.enseigne): c for c in pool}
-    if ETROIT:
-        print("    (dos iv=ivoire ja=jaune · pli L=lisse P=plié)")
-        print()
-        print("     " + "".join(f"{e:<6}" for e in ENSEIGNES))
-        for r in RANGS:
-            cellules = [
-                f"{index[(r, e)].dos[:2]}·{index[(r, e)].pli[0].upper():<3}"
-                for e in ENSEIGNES
-            ]
-            print(f" {NOM_RANG.get(r, str(r)):<4}" + "".join(cellules))
-        print()
-        return
-    print("    " + "".join(f"{e:<16}" for e in ENSEIGNES))
-    for r in RANGS:
-        cellules = []
-        for e in ENSEIGNES:
-            c = index[(r, e)]
-            cellules.append(f"{c.dos[:6]:<7}{c.pli:<9}")
-        print(f" {NOM_RANG.get(r, str(r)):<3}" + "".join(cellules))
-    print()
 
 
 def afficher_ligne(p: Partie) -> None:
@@ -67,17 +40,27 @@ def afficher_ligne(p: Partie) -> None:
 def afficher_aide(dims: Sequence[str]) -> None:
     print()
     print("Une loi secrète décide si une carte peut suivre la ligne.")
-    print("Pose des cartes, observe, déduis. Puis parie.")
+    print("Tu ne choisis pas une carte : tu DÉCRIS l'expérience que tu veux,")
+    print("et tu paies ta précision.")
     print()
     print("Dimensions en jeu (la loi ne porte que sur celles-ci) :")
     for d in dims:
-        print(f"  · {ATTRIBUTS[d].libelle}")
+        vals = " · ".join(str(v) for v in ATTRIBUTS[d].domaine)
+        if d == "rang":
+            vals = "1 à 13  (as valet dame roi)"
+        print(f"  {ATTRIBUTS[d].libelle:20} {vals}")
     print()
-    print("Saisie d'une carte : rang + enseigne.  7p  ·  as coeur  ·  10 t  ·  R♥")
-    print("  rangs     A 2..10 V D R          (ou 1..13)")
-    print("  enseignes p=pique  c=cœur  k=carreau  t=trèfle")
+    print("SONDES")
+    print("  <valeurs>            une carte au hasard parmi celles qui collent")
+    print("                       ex.  jaune plié   ·   9 coeur   ·   rouge")
+    print("  jumelle <pos> <dim>  identique à la carte en position <pos>,")
+    print("                       sauf sur <dim>.  ex.  jumelle 2 dos")
+    print("  hasard               n'importe quelle carte")
     print()
-    print("Commandes :  pool | ligne | aide | pari | abandon")
+    print("PRIX  1 essai, +1 par attribut que tu imposes.")
+    print(f"      hasard = 1   ·   « jaune plié » = 3   ·   jumelle = {cout_jumelle()}")
+    print()
+    print("Commandes :  ligne | aide | pari | abandon")
     print()
 
 
@@ -93,45 +76,82 @@ def demander(invite: str) -> str:
 
 def phase_enquete(p: Partie) -> bool:
     """Renvoie False si le joueur abandonne."""
+    rng = random.Random(p.donne.seed ^ 0x50DE)
     trait("=")
     print("PHASE A — ENQUÊTE")
     trait("=")
     afficher_aide(p.donne.dims)
-    afficher_pool(p.donne.pool)
     afficher_ligne(p)
 
     while p.phase is Phase.ENQUETE:
         if p.essais_restants <= 0:
             print("Plus d'essais. Passage au pari.")
             return True
-        saisie = demander(f"[{p.essais_restants} essais] > ").lower()
-        if not saisie:
+        saisie = demander(f"[{p.essais_restants} essais] > ").strip()
+        bas = saisie.lower()
+        if not bas:
             continue
-        if saisie in ("abandon", "quitter", "q"):
+        if bas in ("abandon", "quitter", "q"):
             return False
-        if saisie in ("pari", "p!", "declarer"):
+        if bas in ("pari", "declarer"):
             return True
-        if saisie in ("aide", "?", "h"):
+        if bas in ("aide", "?", "h"):
             afficher_aide(p.donne.dims)
             continue
-        if saisie == "pool":
-            afficher_pool(p.donne.pool)
-            continue
-        if saisie == "ligne":
+        if bas == "ligne":
             afficher_ligne(p)
             continue
 
-        carte = parser_carte(saisie, p.donne.pool)
-        if carte is None:
-            print("  ? carte non reconnue. « aide » pour la syntaxe.")
+        sonde = _lire_sonde(bas, p, rng)
+        if sonde is None:
+            continue
+        if sonde.cout > p.essais_restants:
+            print(f"  ? cette sonde coûte {sonde.cout}, il te reste "
+                  f"{p.essais_restants}. Sois moins précis.")
             continue
 
-        accepte = p.jouer(carte)
-        if accepte:
-            print(f"  ACCEPTÉE   {carte}   → position {len(p.ligne) - 1}")
-        else:
-            print(f"  REFUSÉE    {carte}")
+        accepte = p.jouer(sonde)
+        verdict = "ACCEPTÉE" if accepte else "REFUSÉE"
+        print(f"  {verdict:9} {sonde.carte}   (-{sonde.cout})")
     return True
+
+
+def _lire_sonde(saisie: str, p: Partie, rng: random.Random):
+    """Traduit la saisie en sonde. Renvoie None si elle est incomprehensible."""
+    mots = saisie.split()
+
+    if mots[0] in ("jumelle", "j"):
+        if len(mots) != 3 or not mots[1].isdigit():
+            print("  ? forme attendue : jumelle <position> <dimension>")
+            return None
+        pos, dim = int(mots[1]), mots[2]
+        if pos >= len(p.ligne):
+            print(f"  ? la ligne s'arrête à la position {len(p.ligne) - 1}.")
+            return None
+        cible = next((d for d in p.donne.dims if d.startswith(dim[:3])), None)
+        if cible is None:
+            print(f"  ? dimension inconnue. « aide » pour la liste.")
+            return None
+        s = jumelle(p.donne.pool, p.ligne[pos], cible, rng)
+        if s is None:
+            print("  ? aucune jumelle disponible sur cette dimension.")
+        return s
+
+    if saisie in ("hasard", "au hasard"):
+        return tirer(p.donne.pool, {}, rng)
+
+    contraintes = lire_description(saisie)
+    if contraintes is None:
+        print("  ? description incomprise. « aide » pour le vocabulaire.")
+        return None
+    inconnues = [a for a in contraintes if a not in p.donne.dims]
+    if inconnues:
+        print(f"  ? dimension hors jeu : {', '.join(inconnues)}")
+        return None
+    s = tirer(p.donne.pool, contraintes, rng)
+    if s is None:
+        print("  ? aucune carte du paquet ne correspond.")
+    return s
 
 
 # --- phase B --------------------------------------------------------------
@@ -154,11 +174,12 @@ def phase_pari(p: Partie) -> bool:
     print("Il s'applique au total, gains comme pertes.")
     print()
     print(f"MAIN ({len(main)} cartes, tirées du paquet) :")
-    for c in main:
-        print(f"  · {c}")
+    for i, c in enumerate(main, 1):
+        print(f"  {i:2}. {c}")
     print()
-    print("Ajoute les cartes une par une. « retirer » annule la dernière,")
-    print("« valider » résout, « ligne » rappelle l'enquête.")
+    print("Ajoute les cartes par leur NUMÉRO — le paquet contient plusieurs")
+    print("cartes de même rang et enseigne, seuls le dos et le pli changent.")
+    print("« retirer » annule la dernière, « valider » résout, « main » réaffiche.")
     print()
 
     suite: list[Carte] = []
@@ -181,8 +202,9 @@ def phase_pari(p: Partie) -> bool:
                 restantes.append(suite.pop())
             continue
         if saisie in ("main", "pool"):
-            for c in sorted(restantes):
-                print(f"  · {c}")
+            for i, c in enumerate(main, 1):
+                etat = "posée" if c in suite else "     "
+                print(f"  {i:2}. {c}  {etat}")
             continue
         if saisie in ("valider", "ok"):
             if not suite:
@@ -191,9 +213,12 @@ def phase_pari(p: Partie) -> bool:
             p.resoudre(suite, declarer_loi(p.donne.dims))
             return True
 
-        carte = parser_carte(saisie, restantes)
-        if carte is None:
-            print("  ? carte absente de la main (ou syntaxe invalide).")
+        if not saisie.isdigit() or not 1 <= int(saisie) <= len(main):
+            print(f"  ? donne un numéro entre 1 et {len(main)}.")
+            continue
+        carte = main[int(saisie) - 1]
+        if carte not in restantes:
+            print("  ? carte déjà posée dans la suite.")
             continue
         restantes.remove(carte)
         suite.append(carte)

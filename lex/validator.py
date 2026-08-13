@@ -48,7 +48,8 @@ from .law import Loi
 PERM_MIN = 0.25          # §5.1 : un quart du paquet jouable
 PERM_MAX = 0.50          # §5.1 : la moitie au plus
 PERM_PLANCHER = 0.08     # §5.4 lu comme anti-impasse : jamais un contexte mort
-TEMOINS_MIN = 12         # refus imputables a une seule clause
+TEMOINS_FRAC = 0.01      # refus imputables a une seule clause, en part
+                         # des observations : le pool peut changer de taille
 CONTEXTES_TEMOINS_MIN = 3
 RIVALES_FRAGILES_MAX = 6  # rivales separees par <= 2 observations
 
@@ -221,7 +222,7 @@ def analyser(
             for k in range(len(ctxs))
             if (seul_fautif >> (k * largeur)) & ((1 << largeur) - 1)
         )
-        if rap.temoins[ci] < TEMOINS_MIN:
+        if rap.temoins[ci] < max(4, int(TEMOINS_FRAC * total_bits)):
             rap.rejeter(f"clause masquee : « {ci.texte()} » ({rap.temoins[ci]} temoins)")
         elif rap.temoins_contextes[ci] < CONTEXTES_TEMOINS_MIN:
             rap.rejeter(f"clause observable dans trop peu de contextes : « {ci.texte()} »")
@@ -367,7 +368,7 @@ def _balayage(args) -> int:
     from .cards import DIMS_DEFAUT, construire_pool
 
     rng = random.Random(args.seed)
-    pool = construire_pool(random.Random(args.seed))
+    pool = construire_pool()
     cat = catalogue(DIMS_DEFAUT)
     compte: collections.Counter = collections.Counter()
     reussites = 0

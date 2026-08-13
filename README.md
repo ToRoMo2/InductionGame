@@ -33,13 +33,48 @@ motifs de rejet : c'est l'outil pour bouger les seuils de `lex/validator.py`.
 
 | Fichier | Rôle |
 |---|---|
-| `cards.py` | cartes, registre d'attributs, saisie |
+| `cards.py` | cartes, registre d'attributs, lecture des descriptions |
+| `probe.py` | la sonde : description, jumelle, tarif |
 | `bricks.py` | les 3 familles de briques → catalogue de clauses |
 | `law.py` | la loi (conjonction) et son évaluateur |
 | `generator.py` | propose-and-test ; rend la loi **et** le pool validé avec elle |
 | `validator.py` | permissivité, anti-impasse, anti-masquage, identifiabilité |
 | `game.py` | la manche (phases A/B/C), logique pure |
 | `cli.py` | terminal |
+
+## La sonde — le cœur du jeu
+
+Le joueur ne choisit pas une carte, il **décrit l'expérience** qu'il veut mener
+et paie sa précision.
+
+```
+> jaune plié            une carte au dos jaune et pliée, le reste au hasard   (3)
+> jumelle 2 dos         identique à la carte en position 2, sauf le dos       (3)
+> hasard                n'importe quelle carte                                (1)
+```
+
+Prix : 1 essai, +1 par attribut imposé. Budget 30.
+
+**La jumelle est la raison d'être du dispositif.** C'est l'observation la plus
+informative du jeu — le validateur l'appelle « témoin pivot » et compte ces
+cas-là pour garantir qu'une loi est déductible — et le joueur n'avait aucun
+moyen de la demander. Elle est vendue moins cher que sa précision ne le
+justifie : un solveur glouton qui optimise l'information par essai ne la prend
+jamais à plein tarif, parce que les sondes larges sont plus rentables par essai
+dépensé. Mais ce solveur met à jour 1711 hypothèses bayésiennement ; un humain
+non. La valeur d'une jumelle est **cognitive** — elle donne un fait directement
+lisible — et à plein tarif le choix pelle-ou-scalpel n'existerait pas.
+
+Le paquet est le **produit cartésien complet** : 13 × 4 × 2 × 2 = 208 cartes.
+Ce n'est pas un paquet de 52 augmenté, c'est un changement de nature. Dans un
+paquet classique, dos et pli sont des *fonctions* de (rang, enseigne) : il
+n'existe qu'un seul 9♥, avec son dos et son pli figés, donc il est impossible
+de faire varier une seule dimension. Sans produit complet, pas d'expérience
+contrôlée — et sans expérience contrôlée, l'induction n'est qu'une collection
+de coïncidences. Le paquet n'étant jamais affiché en entier, sa taille ne coûte
+rien.
+
+Étalonnage mesuré : un solveur parfait dépense une médiane de 18 essais sur 30.
 
 ## Le pari
 

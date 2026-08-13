@@ -7,7 +7,8 @@ Decisions de cadrage retenues pour la phase 0 :
   - Pool fixe et visible en phase A : le joueur nomme n'importe quelle carte.
     La testabilite devient une propriete statique, verifiable exactement. La
     main tiree viendra plus tard, une fois la grammaire reglee.
-  - Budget d'essais FIXE (§16.1). Acceptations et refus consomment pareil.
+  - Budget d'essais FIXE (§16.1), mais chaque sonde a son PRIX : le joueur
+    decrit l'experience qu'il veut et paie sa precision (voir probe.py).
   - Pari a longueur libre, tout ou rien (§16.2), depuis une main bornee
     (§4B interdit l'acces total au paquet).
 """
@@ -22,9 +23,12 @@ from typing import Sequence
 from .cards import Carte
 from .generator import Donne, generer
 from .law import Loi
+from .probe import Sonde
 from .validator import equivalentes
 
-ESSAIS = 20
+# Plancher mesure : un solveur parfait depense ~15 essais. On garde environ
+# le double pour l'inefficacite humaine, comme avant le changement de sonde.
+ESSAIS = 30
 MAIN_PARI = 12
 
 
@@ -76,6 +80,7 @@ class Partie:
     # payee, donc interdite par le §6.
     refusees: list[tuple[int, Carte, int]] = field(default_factory=list)
     essais_restants: int = 0
+    sondes: int = 0
     main: tuple[Carte, ...] = ()
     resolution: Resolution | None = None
 
@@ -86,18 +91,23 @@ class Partie:
 
     # --- phase A ---
 
-    def jouer(self, carte: Carte) -> bool:
+    def jouer(self, sonde: Sonde) -> bool:
+        """Le cout de la sonde est preleve sur le budget, pas 1 par coup.
+
+        C'est la mecanique centrale : une carte au hasard ne coute presque rien
+        et n'apprend presque rien, une jumelle coute cher et tranche. Le joueur
+        arbitre a chaque tour entre la pelle et le scalpel.
+        """
         if self.phase is not Phase.ENQUETE:
             raise RuntimeError("la phase d'enquete est terminee")
-        if self.essais_restants <= 0:
-            raise RuntimeError("plus d'essais")
-        self.essais_restants -= 1
-        if self.donne.loi.accepte(self.ligne, carte):
-            self.ligne.append(carte)
+        if sonde.cout > self.essais_restants:
+            raise ValueError("budget insuffisant pour cette sonde")
+        self.essais_restants -= sonde.cout
+        self.sondes += 1
+        if self.donne.loi.accepte(self.ligne, sonde.carte):
+            self.ligne.append(sonde.carte)
             return True
-        self.refusees.append(
-            (self.essais - self.essais_restants, carte, len(self.ligne) - 1)
-        )
+        self.refusees.append((self.sondes, sonde.carte, len(self.ligne) - 1))
         return False
 
     # --- phase B ---

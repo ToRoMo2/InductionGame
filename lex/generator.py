@@ -47,7 +47,7 @@ def generer(
     if seed is None:
         seed = random.randrange(1, 10**9)
     dims = tuple(dims)
-    pool = construire_pool(random.Random(seed))
+    pool = construire_pool()
     rng = random.Random(seed ^ 0x5EED)
     cat = catalogue(dims)
 
