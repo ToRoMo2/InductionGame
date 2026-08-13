@@ -125,11 +125,15 @@ def parser_carte(texte: str, pool: Sequence[Carte]) -> Carte | None:
     Le rang et l'enseigne suffisent : dans un pool fixe de 52, ils identifient
     la carte, donc le joueur n'a jamais a saisir le dos ni le pli.
     """
-    t = texte.strip().lower().replace("-", " ")
+    t = texte.strip().lower().replace("-", " ").replace("'", " ")
     if not t:
         return None
 
-    morceaux = t.split()
+    # « 5 de coeur », « as de pique » : la liaison est la forme naturelle en
+    # francais, elle ne porte aucune information.
+    morceaux = [m for m in t.split() if m not in ("de", "d", "du", "des", "le", "la")]
+    if not morceaux:
+        return None
     if len(morceaux) == 2:
         candidats = [(morceaux[0], morceaux[1])]
     else:
