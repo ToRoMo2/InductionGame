@@ -23,17 +23,48 @@ def trait(c: str = "-") -> None:
     print(c * (34 if ETROIT else LARGEUR))
 
 
+COLONNES = (
+    ("rang", 5, lambda c: c.nom_court[:-1]),
+    ("parité", 8, lambda c: c.parite),
+    ("ens", 5, lambda c: c.enseigne),
+    ("couleur", 8, lambda c: c.couleur),
+    ("dos", 8, lambda c: c.dos),
+    ("pli", 7, lambda c: c.pli),
+)
+
+
+def _entete(marge: int = 7) -> str:
+    return " " * marge + "".join(f"{nom:<{l}}" for nom, l, _ in COLONNES)
+
+
+def _rang_tableau(
+    carte: Carte, etiquette: str, suffixe: str = "", marge: int = 7
+) -> str:
+    """Une carte sur une ligne, en colonnes alignees.
+
+    Le geste central du jeu est de COMPARER deux cartes. Ecrites en prose
+    (« 9♥ [dos:ivoire] [lisse] »), la comparaison est un exercice de lecture ;
+    en colonnes, la difference saute aux yeux. Un testeur externe a decroche
+    exactement la-dessus. Les attributs derives (couleur, parite) ont leur
+    colonne : ils sont triviaux a calculer mais couteux a calculer VITE, et
+    les afficher ne revele rien — ils sont deja annonces comme dimensions.
+    """
+    cells = "".join(f"{f(carte):<{l}}" for _, l, f in COLONNES)
+    return f"{etiquette:<{marge}}{cells}{suffixe}"
+
+
 def afficher_ligne(p: Partie) -> None:
     print()
     print("LIGNE PRINCIPALE")
+    print(_entete())
     for i, c in enumerate(p.ligne):
-        marque = "(départ)" if i == 0 else ""
-        print(f"  {i}. {c} {marque}")
+        print(_rang_tableau(c, f"  {i}.", "(départ)" if i == 0 else ""))
     if p.refusees:
         print()
         print("REFUSÉES  (le refus vaut pour le contexte de ce tour-là)")
+        print(_entete())
         for essai, c, pos in p.refusees:
-            print(f"  x  {c}   (essai {essai} · après {pos}. {p.ligne[pos].nom_court})")
+            print(_rang_tableau(c, "  x", f"(sonde {essai}, après {pos}.)"))
     print()
 
 
@@ -111,8 +142,14 @@ def phase_enquete(p: Partie) -> bool:
             continue
 
         accepte = p.jouer(sonde)
-        verdict = "ACCEPTÉE" if accepte else "REFUSÉE"
-        print(f"  {verdict:9} {sonde.carte}   (-{sonde.cout})")
+        print()
+        print(_entete(11))
+        print(_rang_tableau(
+            sonde.carte,
+            "ACCEPTÉE" if accepte else "REFUSÉE",
+            f"(-{sonde.cout})",
+            marge=11,
+        ))
     return True
 
 
@@ -164,9 +201,11 @@ def phase_pari(p: Partie) -> bool:
     trait("=")
     print()
     print("Construis la suite la plus longue que tu oses.")
-    print(f"Elle PROLONGE la carte de départ — {p.donne.demarrage} —")
-    print("qui compte comme carte précédente de ta première carte.")
-    print("Le reste de la ligne principale ne compte pas.")
+    print("Elle PROLONGE la carte de départ, qui compte comme carte")
+    print("précédente de ta première carte. Le reste de la ligne ne compte pas.")
+    print()
+    print(_entete())
+    print(_rang_tableau(p.donne.demarrage, "  dép."))
     print(f"Valide : +longueur².   Fausse d'une seule carte : -longueur².")
     print()
     print(f"MULTIPLICATEUR ×{p.multiplicateur():.2f}"
@@ -174,8 +213,9 @@ def phase_pari(p: Partie) -> bool:
     print("Il s'applique au total, gains comme pertes.")
     print()
     print(f"MAIN ({len(main)} cartes, tirées du paquet) :")
+    print(_entete())
     for i, c in enumerate(main, 1):
-        print(f"  {i:2}. {c}")
+        print(_rang_tableau(c, f"  {i:2}."))
     print()
     print("Ajoute les cartes par leur NUMÉRO — le paquet contient plusieurs")
     print("cartes de même rang et enseigne, seuls le dos et le pli changent.")
@@ -202,9 +242,9 @@ def phase_pari(p: Partie) -> bool:
                 restantes.append(suite.pop())
             continue
         if saisie in ("main", "pool"):
+            print(_entete())
             for i, c in enumerate(main, 1):
-                etat = "posée" if c in suite else "     "
-                print(f"  {i:2}. {c}  {etat}")
+                print(_rang_tableau(c, f"  {i:2}.", "posée" if c in suite else ""))
             continue
         if saisie in ("valider", "ok"):
             if not suite:

@@ -349,6 +349,20 @@ Mettre un ami devant, sans explication, et chronométrer. Observer où il coince
 
 > Précédent utile : le déclic de Balatro n'a pas été une intuition de marché, mais un ami disant avoir joué 30 ou 40 heures. Signal comportemental, jamais déclaratif.
 
+### Résultat du premier test externe
+
+**Sujet** : joueur non codeur, aucune explication préalable, plusieurs manches.
+
+**Ce qui est validé** — et c'est la question centrale du §13 : il a trouvé sa première loi, il a gagné des points par déduction, et **il a aimé ça**. Visiblement absorbé pendant plusieurs parties. La boucle d'induction fonctionne sur quelqu'un qui ne l'a pas conçue.
+
+**Ce qui coince** : « sans plus », attribué au fait que **tout est du texte** — difficile de s'y retrouver pour qui n'a pas l'habitude d'en lire beaucoup.
+
+**Diagnostic, prudent.** Un joueur décrit une gêne, il ne diagnostique pas sa cause. « Trop dur de s'y retrouver » peut vouloir dire *l'affichage est illisible* ou *l'effort mental est trop grand*, et les remèdes sont opposés. Une seule chose était certaine et corrigeable tout de suite : le geste central du jeu est de **comparer deux cartes**, et l'affichage en prose (`9♥ [dos:ivoire] [lisse]`) en faisait un exercice de lecture. Passage à un tableau en colonnes alignées, attributs dérivés compris. À retester avec le même sujet.
+
+**Ne pas conclure « il faut des graphismes ».** Ce serait sauter à l'étape 4 sur un seul témoignage, avant d'avoir épuisé ce que le texte permet. Si le tableau ne change rien, alors le diagnostic est différent — et plus sérieux, car il porterait sur la charge mentale de la déduction elle-même, pas sur son emballage.
+
+**Donnée manquante, et c'est la décisive** : a-t-il redemandé à jouer ?
+
 ---
 
 ## 14. Étapes suivantes (ordre strict)
