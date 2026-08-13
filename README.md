@@ -59,9 +59,11 @@ plus tôt, il permettrait l'élimination mécanique que le §6 interdit.
 
 Le nombre de briques n'est jamais annoncé pendant la manche.
 
-Les cartes refusées sont listées avec le **numéro d'essai** du refus. Un refus
-reste vrai pour toujours dans son contexte, et le contexte change à chaque
-acceptation : le numéro permet de s'y replacer. Le jeu ne signale jamais qu'une
+Les cartes refusées sont listées avec le **numéro d'essai** et la **position de
+la ligne** au moment du refus. Un refus reste vrai pour toujours dans son
+contexte, et le contexte change à chaque acceptation. Comme la ligne ne fait que
+croître, la position reste valable et pointe sans ambiguïté vers la carte qui
+précédait — ce qu'il faut pour vérifier une hypothèse relationnelle. Le jeu ne signale jamais qu'une
 carte refusée passerait maintenant — ce serait une information sur le contexte
 courant que le joueur n'a pas payée (§6).
 

@@ -59,8 +59,8 @@ def afficher_ligne(p: Partie) -> None:
     if p.refusees:
         print()
         print("REFUSÉES  (le refus vaut pour le contexte de ce tour-là)")
-        for essai, c in p.refusees:
-            print(f"  x  {c}   (essai {essai})")
+        for essai, c, pos in p.refusees:
+            print(f"  x  {c}   (essai {essai} · après {pos}. {p.ligne[pos].nom_court})")
     print()
 
 
