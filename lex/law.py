@@ -30,15 +30,24 @@ class Loi:
         l'elimination mecanique."""
         return tuple(c for c in self.clauses if not c.tient(ligne, carte))
 
-    def valide_suite(self, suite: Sequence[Carte]) -> int:
-        """Renvoie l'index de la premiere carte invalide, ou -1 si tout passe.
+    def valide_suite(
+        self, suite: Sequence[Carte], prefixe: Sequence[Carte] = ()
+    ) -> int:
+        """Renvoie l'index dans `suite` de la premiere carte invalide, ou -1.
 
-        La suite est evaluee seule, comme une ligne neuve : elle ne prolonge
-        pas la ligne principale.
+        `prefixe` est la ligne deja posee sur laquelle la suite se greffe. En
+        phase B c'est la carte de depart : sans elle, la premiere carte du pari
+        n'aurait aucune carte precedente, donc les clauses relationnelles et
+        sequentielles ne mordraient pas dessus. Sur les lois sans clause
+        absolue — 17 % d'entre elles — n'importe quelle carte serait alors
+        acceptee, et un joueur n'ayant rien compris empocherait des points
+        garantis en posant une seule carte.
         """
-        for i in range(len(suite)):
-            if not self.accepte(suite[:i], suite[i]):
+        ligne = list(prefixe)
+        for i, carte in enumerate(suite):
+            if not self.accepte(ligne, carte):
                 return i
+            ligne.append(carte)
         return -1
 
     def texte(self) -> str:

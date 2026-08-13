@@ -142,7 +142,8 @@ class Partie:
         """
         if self.phase is not Phase.PARI:
             raise RuntimeError("il faut d'abord declarer le pari")
-        i = self.donne.loi.valide_suite(suite)
+        # La suite prolonge la carte de depart : elle n'est pas une ligne neuve.
+        i = self.donne.loi.valide_suite(suite, (self.donne.demarrage,))
         n = len(suite)
         res = Resolution(i < 0, n, n * n if i < 0 else -(n * n), i)
         res.essais_restants = self.essais_restants

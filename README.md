@@ -45,8 +45,12 @@ motifs de rejet : c'est l'outil pour bouger les seuils de `lex/validator.py`.
 
 Deux paris indépendants, de même mise `longueur²` :
 
-1. **la suite** — valide, tu encaisses ; une seule carte fausse, la valeur se
-   retourne contre toi ;
+1. **la suite** — elle **prolonge la carte de départ**, qui juge sa première
+   carte ; valide, tu encaisses ; une seule carte fausse, la valeur se retourne
+   contre toi. Évaluée sur une ligne neuve, la première carte n'aurait aucune
+   carte précédente : sur les 17 % de lois sans clause absolue, n'importe
+   quelle carte serait passée et un joueur n'ayant rien compris aurait encaissé
+   des points garantis ;
 2. **la loi** — facultatif. Tu la construis par menus (famille → attribut →
    paramètres), pas dans une liste de lois candidates. Juste, tu doubles ;
    faux, tu perds autant ; refuser ne coûte rien.

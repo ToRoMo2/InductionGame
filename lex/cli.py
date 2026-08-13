@@ -144,8 +144,9 @@ def phase_pari(p: Partie) -> bool:
     trait("=")
     print()
     print("Construis la suite la plus longue que tu oses.")
-    print("Elle est évaluée SEULE, comme une ligne neuve — elle ne prolonge")
-    print("pas la ligne principale.")
+    print(f"Elle PROLONGE la carte de départ — {p.donne.demarrage} —")
+    print("qui compte comme carte précédente de ta première carte.")
+    print("Le reste de la ligne principale ne compte pas.")
     print(f"Valide : +longueur².   Fausse d'une seule carte : -longueur².")
     print()
     print(f"MULTIPLICATEUR ×{p.multiplicateur():.2f}"
@@ -163,7 +164,10 @@ def phase_pari(p: Partie) -> bool:
     suite: list[Carte] = []
     restantes = list(main)
     while True:
-        apercu = " → ".join(c.nom_court for c in suite) or "(vide)"
+        # Le depart est rappele en tete : c'est lui qui juge la premiere carte.
+        apercu = " → ".join(
+            [f"({p.donne.demarrage.nom_court})"] + [c.nom_court for c in suite]
+        )
         saisie = demander(f"[suite: {apercu}] > ").lower()
         if not saisie:
             continue
