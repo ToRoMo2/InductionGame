@@ -10,6 +10,7 @@ par ATTRIBUTS. Ajouter une dimension ajoute des lois sans toucher a bricks.py.
 from __future__ import annotations
 
 import random
+import unicodedata
 from dataclasses import dataclass
 from typing import Any, Callable, Sequence
 
@@ -111,16 +112,46 @@ _RANGS_SAISIE = {
 for _n in range(2, 11):
     _RANGS_SAISIE[str(_n)] = _n
 
+_NOMS_ENSEIGNE = {"pique": "♠", "coeur": "♥", "carreau": "♦", "trefle": "♣"}
+
+# Lettres courtes, symboles, et les abreviations qui ne sont PAS des prefixes
+# ("pic" n'est pas un debut de "pique"). Les cas ambigus ("c" pourrait etre
+# coeur ou carreau) sont tranches ici une bonne fois ; tout le reste passe par
+# le prefixe, donc "piq", "car", "tre", "co" marchent sans etre listes.
 _ENSEIGNES_SAISIE = {
-    "p": "♠", "pique": "♠", "♠": "♠", "s": "♠",
-    "c": "♥", "coeur": "♥", "cœur": "♥", "♥": "♥", "h": "♥",
-    "k": "♦", "car": "♦", "carreau": "♦", "♦": "♦", "d": "♦",
-    "t": "♣", "tr": "♣", "trefle": "♣", "trèfle": "♣", "♣": "♣",
+    "p": "♠", "s": "♠", "♠": "♠", "pic": "♠", "pik": "♠",
+    "c": "♥", "h": "♥", "cœur": "♥", "♥": "♥",
+    "k": "♦", "d": "♦", "♦": "♦", "kar": "♦",
+    "t": "♣", "♣": "♣", "trefl": "♣",
 }
 
 
+def _sans_accents(s: str) -> str:
+    return "".join(
+        c for c in unicodedata.normalize("NFD", s) if not unicodedata.combining(c)
+    )
+
+
+def _lire_enseigne(jeton: str) -> str | None:
+    """Accepte la lettre, le symbole, le nom complet, et toute abreviation non
+    ambigue : « pic », « tre », « car ». Le pluriel est tolere."""
+    for forme in (jeton, jeton.rstrip("s")):
+        if not forme:
+            continue
+        if forme in _ENSEIGNES_SAISIE:
+            return _ENSEIGNES_SAISIE[forme]
+        nu = _sans_accents(forme).replace("œ", "oe")
+        if nu in _ENSEIGNES_SAISIE:
+            return _ENSEIGNES_SAISIE[nu]
+        if len(nu) >= 2:
+            trouves = {v for k, v in _NOMS_ENSEIGNE.items() if k.startswith(nu)}
+            if len(trouves) == 1:
+                return trouves.pop()
+    return None
+
+
 def parser_carte(texte: str, pool: Sequence[Carte]) -> Carte | None:
-    """Tolerant : '7p', '7 pique', 'as coeur', 'R♥', '10 t'.
+    """Tolerant : '7p', '7 pique', 'as coeur', 'R♥', '10 t', 'as pic'.
 
     Le rang et l'enseigne suffisent : dans un pool fixe de 52, ils identifient
     la carte, donc le joueur n'a jamais a saisir le dos ni le pli.
@@ -142,8 +173,7 @@ def parser_carte(texte: str, pool: Sequence[Carte]) -> Carte | None:
 
     for tr, te in candidats:
         rang = _RANGS_SAISIE.get(tr)
-        # « 2 trefles », « deux piques » : le pluriel est le reflexe naturel.
-        enseigne = _ENSEIGNES_SAISIE.get(te) or _ENSEIGNES_SAISIE.get(te.rstrip("s"))
+        enseigne = _lire_enseigne(te)
         if rang is None or enseigne is None:
             continue
         for c in pool:
