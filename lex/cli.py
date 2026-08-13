@@ -11,17 +11,33 @@ from .game import ESSAIS, MAIN_PARI, Partie, Phase, nouvelle_partie
 
 LARGEUR = 68
 
+# Mode etroit : pour jouer sur un ecran de telephone, ou en relais dans une
+# conversation. Regle par --etroit.
+ETROIT = False
+
 
 def trait(c: str = "-") -> None:
-    print(c * LARGEUR)
+    print(c * (34 if ETROIT else LARGEUR))
 
 
 def afficher_pool(pool: Sequence[Carte]) -> None:
     """Grille rang x enseigne. Tout est visible : en phase 0 il n'y a pas de
     geste de manipulation, donc les attributs caches sont ecrits en clair."""
     print()
-    print("    " + "".join(f"{e:<16}" for e in ENSEIGNES))
     index = {(c.rang, c.enseigne): c for c in pool}
+    if ETROIT:
+        print("    (dos iv=ivoire ja=jaune · pli L=lisse P=plié)")
+        print()
+        print("     " + "".join(f"{e:<6}" for e in ENSEIGNES))
+        for r in RANGS:
+            cellules = [
+                f"{index[(r, e)].dos[:2]}·{index[(r, e)].pli[0].upper():<3}"
+                for e in ENSEIGNES
+            ]
+            print(f" {NOM_RANG.get(r, str(r)):<4}" + "".join(cellules))
+        print()
+        return
+    print("    " + "".join(f"{e:<16}" for e in ENSEIGNES))
     for r in RANGS:
         cellules = []
         for e in ENSEIGNES:
@@ -236,5 +252,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     p.add_argument("--seed", type=int, default=None, help="rejouer la même manche")
     p.add_argument("--clauses", type=int, default=2, help="nombre de briques (1 ou 2)")
     p.add_argument("--essais", type=int, default=ESSAIS, help="budget d'essais (fixe)")
+    p.add_argument(
+        "--etroit",
+        action="store_true",
+        help="affichage compact, pour un ecran de telephone",
+    )
     args = p.parse_args(argv)
+    global ETROIT
+    ETROIT = args.etroit
     return jouer(seed=args.seed, n_clauses=args.clauses, essais=args.essais)
