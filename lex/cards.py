@@ -138,7 +138,8 @@ def parser_carte(texte: str, pool: Sequence[Carte]) -> Carte | None:
 
     for tr, te in candidats:
         rang = _RANGS_SAISIE.get(tr)
-        enseigne = _ENSEIGNES_SAISIE.get(te)
+        # « 2 trefles », « deux piques » : le pluriel est le reflexe naturel.
+        enseigne = _ENSEIGNES_SAISIE.get(te) or _ENSEIGNES_SAISIE.get(te.rstrip("s"))
         if rang is None or enseigne is None:
             continue
         for c in pool:
