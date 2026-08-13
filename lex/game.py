@@ -57,7 +57,13 @@ class Partie:
 
     phase: Phase = Phase.ENQUETE
     ligne: list[Carte] = field(default_factory=list)
-    refusees: list[Carte] = field(default_factory=list)
+    # (numero d'essai, carte). Le numero n'est pas decoratif : un refus reste
+    # vrai pour toujours DANS SON CONTEXTE, et le contexte change a chaque
+    # acceptation. Savoir quand le refus a eu lieu permet de s'y replacer.
+    # Signaler qu'une carte refusee passerait maintenant serait autre chose :
+    # une information sur le contexte courant que le joueur n'a pas payee,
+    # donc interdite par le §6.
+    refusees: list[tuple[int, Carte]] = field(default_factory=list)
     essais_restants: int = 0
     main: tuple[Carte, ...] = ()
     resolution: Resolution | None = None
@@ -78,7 +84,7 @@ class Partie:
         if self.donne.loi.accepte(self.ligne, carte):
             self.ligne.append(carte)
             return True
-        self.refusees.append(carte)
+        self.refusees.append((self.essais - self.essais_restants, carte))
         return False
 
     # --- phase B ---

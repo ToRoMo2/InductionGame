@@ -58,9 +58,9 @@ def afficher_ligne(p: Partie) -> None:
         print(f"  {i}. {c} {marque}")
     if p.refusees:
         print()
-        print("REFUSÉES  (elles restent disponibles, à toi de les retenir)")
-        for c in p.refusees:
-            print(f"  x  {c}")
+        print("REFUSÉES  (le refus vaut pour le contexte de ce tour-là)")
+        for essai, c in p.refusees:
+            print(f"  x  {c}   (essai {essai})")
     print()
 
 

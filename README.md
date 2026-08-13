@@ -59,6 +59,12 @@ plus tôt, il permettrait l'élimination mécanique que le §6 interdit.
 
 Le nombre de briques n'est jamais annoncé pendant la manche.
 
+Les cartes refusées sont listées avec le **numéro d'essai** du refus. Un refus
+reste vrai pour toujours dans son contexte, et le contexte change à chaque
+acceptation : le numéro permet de s'y replacer. Le jeu ne signale jamais qu'une
+carte refusée passerait maintenant — ce serait une information sur le contexte
+courant que le joueur n'a pas payée (§6).
+
 ## La testabilité (§5.2)
 
 Le cahier des charges formule la contrainte en fréquence. Le vrai danger est le
