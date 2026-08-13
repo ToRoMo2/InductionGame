@@ -63,6 +63,7 @@ class Rapport:
     perm_moy: float = 0.0
     perm_min: float = 0.0
     perm_max: float = 0.0
+    perm_depart: float = 0.0
     temoins: dict[Clause, int] = field(default_factory=dict)
     temoins_contextes: dict[Clause, int] = field(default_factory=dict)
     n_contextes: int = 0
@@ -100,8 +101,11 @@ def contextes(
     La premiere carte est distribuee (elle n'a pas a etre acceptee), les
     suivantes doivent l'etre : la loi contraint ses propres contextes.
     """
-    vus: set[tuple[Carte, ...]] = set()
-    out: list[tuple[Carte, ...]] = []
+    # Le contexte nu — la ligne reduite a la carte distribuee — est toujours
+    # present : c'est celui ou le joueur passe ses premiers coups, donc celui
+    # dont la permissivite decide de la premiere impression.
+    vus: set[tuple[Carte, ...]] = {(depart,)}
+    out: list[tuple[Carte, ...]] = [(depart,)]
     for _ in range(n * 40):
         if len(out) >= n:
             break
@@ -192,6 +196,15 @@ def analyser(
         rap.rejeter(f"permissivite moyenne hors cible ({rap.perm_moy:.0%})")
     if rap.perm_min < PERM_PLANCHER:
         rap.rejeter(f"contexte quasi-mort ({rap.perm_min:.0%} jouable)")
+
+    # La moyenne ne dit rien de l'ouverture. Le joueur passe ses premiers coups
+    # dans le seul contexte de depart : si c'est le plus sec de la manche, la
+    # partie commence par un mur. Trouve en jouant — 9 cartes jouables sur 52
+    # au depart pour une moyenne de 33 %, soit cinq refus d'affilee tres
+    # probables d'entree.
+    rap.perm_depart = _popcount(m_loi & ((1 << largeur) - 1)) / largeur
+    if not (PERM_MIN <= rap.perm_depart <= PERM_MAX):
+        rap.rejeter(f"ouverture hors cible ({rap.perm_depart:.0%} jouable au départ)")
 
     # 2. temoins pivots : refus imputables a une seule clause.
     #    C'est le controle qui traite le masquage, et le plus important des
@@ -336,6 +349,7 @@ def _main(argv: Sequence[str] | None = None) -> int:
     print()
     print(f"contextes     : {rap.n_contextes}")
     print(f"permissivité  : moy {rap.perm_moy:.0%}  min {rap.perm_min:.0%}  max {rap.perm_max:.0%}")
+    print(f"ouverture     : {rap.perm_depart:.0%} jouable depuis le départ seul")
     print(f"classes       : {rap.classes} comportements distincts dans la grammaire")
     print(f"séparation min: {rap.separation_min} observations")
     print(f"rivales fragiles : {rap.rivales_fragiles}")
