@@ -20,51 +20,63 @@ ETROIT = False
 
 
 def trait(c: str = "-") -> None:
-    print(c * (34 if ETROIT else LARGEUR))
+    largeur = 34 if ETROIT else (LARGEUR if c != "─" else 2 * LARGEUR_COLS + 7)
+    print(c * largeur)
 
 
+# Colonnes resserrees : deux tableaux cote a cote doivent tenir dans 80.
 COLONNES = (
     ("rang", 5, lambda c: c.nom_court[:-1]),
-    ("parité", 8, lambda c: c.parite),
-    ("ens", 5, lambda c: c.enseigne),
+    ("parité", 7, lambda c: c.parite),
+    ("ens", 4, lambda c: c.enseigne),
     ("couleur", 8, lambda c: c.couleur),
-    ("dos", 8, lambda c: c.dos),
-    ("pli", 7, lambda c: c.pli),
+    ("dos", 7, lambda c: c.dos),
+    ("pli", 6, lambda c: c.pli),
 )
+LARGEUR_COLS = sum(l for _, l, _ in COLONNES)
+SEP = " │ "
 
 
-def _entete(marge: int = 7) -> str:
-    return " " * marge + "".join(f"{nom:<{l}}" for nom, l, _ in COLONNES)
+def _cellule(carte: Carte | None) -> str:
+    if carte is None:
+        return " " * LARGEUR_COLS
+    return "".join(f"{f(carte):<{l}}" for _, l, f in COLONNES)
 
 
-def _rang_tableau(
-    carte: Carte, etiquette: str, suffixe: str = "", marge: int = 7
-) -> str:
-    """Une carte sur une ligne, en colonnes alignees.
-
-    Le geste central du jeu est de COMPARER deux cartes. Ecrites en prose
-    (« 9♥ [dos:ivoire] [lisse] »), la comparaison est un exercice de lecture ;
-    en colonnes, la difference saute aux yeux. Un testeur externe a decroche
-    exactement la-dessus. Les attributs derives (couleur, parite) ont leur
-    colonne : ils sont triviaux a calculer mais couteux a calculer VITE, et
-    les afficher ne revele rien — ils sont deja annonces comme dimensions.
-    """
-    cells = "".join(f"{f(carte):<{l}}" for _, l, f in COLONNES)
-    return f"{etiquette:<{marge}}{cells}{suffixe}"
+def _entete_cols() -> str:
+    return "".join(f"{nom:<{l}}" for nom, l, _ in COLONNES)
 
 
 def afficher_ligne(p: Partie) -> None:
+    """Deux colonnes : les acceptees a gauche, les refus a droite, dans l'ordre.
+
+    Lire la colonne de gauche de haut en bas donne la suite valide sans qu'un
+    refus vienne s'y melanger — c'est la lisibilite « ligne principale / lignes
+    d'erreur » qu'Eleusis nous apprend (§12) et qu'on avait perdue.
+
+    L'interet n'est pas que cosmetique : place chronologiquement en regard de
+    la ligne, un refus montre de lui-meme APRES QUELLE CARTE il a eu lieu. Les
+    annotations « (sonde 5, apres 1.) » qu'il fallait ajouter avant deviennent
+    inutiles — la mise en page dit la meme chose sans un mot.
+    """
     print()
-    print("LIGNE PRINCIPALE")
-    print(_entete())
-    for i, c in enumerate(p.ligne):
-        print(_rang_tableau(c, f"  {i}.", "(départ)" if i == 0 else ""))
-    if p.refusees:
-        print()
-        print("REFUSÉES  (le refus vaut pour le contexte de ce tour-là)")
-        print(_entete())
-        for essai, c, pos in p.refusees:
-            print(_rang_tableau(c, "  x", f"(sonde {essai}, après {pos}.)"))
+    gauche = f"{'LIGNE PRINCIPALE':<{LARGEUR_COLS + 4}}"
+    print(f"{gauche}{SEP}REFUSÉES")
+    print(f"    {_entete_cols()}{SEP}{_entete_cols()}")
+    trait("─")
+
+    def rangee(pos: int | None, carte: Carte, accepte: bool, suffixe: str = "") -> None:
+        if accepte:
+            print(f"{pos:>2}. {_cellule(carte)}{SEP}")
+        else:
+            print(f"    {_cellule(None)}{SEP}{_cellule(carte)}{suffixe}")
+
+    rangee(0, p.ligne[0], True)
+    pos = 1
+    for accepte, carte in p.journal:
+        rangee(pos if accepte else None, carte, accepte)
+        if accepte:
+            pos += 1
     print()
 
 
@@ -142,14 +154,8 @@ def phase_enquete(p: Partie) -> bool:
             continue
 
         accepte = p.jouer(sonde)
-        print()
-        print(_entete(11))
-        print(_rang_tableau(
-            sonde.carte,
-            "ACCEPTÉE" if accepte else "REFUSÉE",
-            f"(-{sonde.cout})",
-            marge=11,
-        ))
+        print(f"\n  {'ACCEPTÉE' if accepte else 'REFUSÉE'}   (-{sonde.cout})")
+        afficher_ligne(p)
     return True
 
 
@@ -204,8 +210,8 @@ def phase_pari(p: Partie) -> bool:
     print("Elle PROLONGE la carte de départ, qui compte comme carte")
     print("précédente de ta première carte. Le reste de la ligne ne compte pas.")
     print()
-    print(_entete())
-    print(_rang_tableau(p.donne.demarrage, "  dép."))
+    print(f"    {_entete_cols()}")
+    print(f"dép.{_cellule(p.donne.demarrage)}")
     print(f"Valide : +longueur².   Fausse d'une seule carte : -longueur².")
     print()
     print(f"MULTIPLICATEUR ×{p.multiplicateur():.2f}"
@@ -213,9 +219,9 @@ def phase_pari(p: Partie) -> bool:
     print("Il s'applique au total, gains comme pertes.")
     print()
     print(f"MAIN ({len(main)} cartes, tirées du paquet) :")
-    print(_entete())
+    print(f"    {_entete_cols()}")
     for i, c in enumerate(main, 1):
-        print(_rang_tableau(c, f"  {i:2}."))
+        print(f"{i:2}. {_cellule(c)}")
     print()
     print("Ajoute les cartes par leur NUMÉRO — le paquet contient plusieurs")
     print("cartes de même rang et enseigne, seuls le dos et le pli changent.")
@@ -242,9 +248,10 @@ def phase_pari(p: Partie) -> bool:
                 restantes.append(suite.pop())
             continue
         if saisie in ("main", "pool"):
-            print(_entete())
+            print(f"    {_entete_cols()}")
             for i, c in enumerate(main, 1):
-                print(_rang_tableau(c, f"  {i:2}.", "posée" if c in suite else ""))
+                etat = "posée" if c in suite else ""
+                print(f"{i:2}. {_cellule(c)}{etat}")
             continue
         if saisie in ("valider", "ok"):
             if not suite:

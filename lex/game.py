@@ -67,18 +67,17 @@ class Partie:
 
     phase: Phase = Phase.ENQUETE
     ligne: list[Carte] = field(default_factory=list)
-    # (numero d'essai, carte refusee, position de la ligne a ce moment-la).
-    # Rien de decoratif : un refus reste vrai pour toujours DANS SON CONTEXTE,
-    # et le contexte change a chaque acceptation. Sans le numero d'essai ni la
-    # position, verifier « est-ce que mon hypothese explique ce refus ? »
-    # demande de reconstituer la ligne de tete. Comme la ligne ne fait que
-    # croitre, la position reste valable pour toujours et pointe sans ambiguite
-    # vers la carte qui precedait.
+    # Toutes les sondes DANS L'ORDRE : (acceptee, carte). L'ordre n'est pas
+    # decoratif. Un refus reste vrai pour toujours DANS SON CONTEXTE, et le
+    # contexte change a chaque acceptation ; affiche chronologiquement en
+    # regard de la ligne, le refus montre de lui-meme quand il a eu lieu et
+    # apres quelle carte. C'est la « lisibilite ligne principale / lignes
+    # d'erreur » qu'Eleusis nous apprend (§12).
     #
     # Signaler qu'une carte refusee passerait MAINTENANT serait tout autre
     # chose : une information sur le contexte courant que le joueur n'a pas
     # payee, donc interdite par le §6.
-    refusees: list[tuple[int, Carte, int]] = field(default_factory=list)
+    journal: list[tuple[bool, Carte]] = field(default_factory=list)
     essais_restants: int = 0
     sondes: int = 0
     main: tuple[Carte, ...] = ()
@@ -104,11 +103,11 @@ class Partie:
             raise ValueError("budget insuffisant pour cette sonde")
         self.essais_restants -= sonde.cout
         self.sondes += 1
-        if self.donne.loi.accepte(self.ligne, sonde.carte):
+        accepte = self.donne.loi.accepte(self.ligne, sonde.carte)
+        self.journal.append((accepte, sonde.carte))
+        if accepte:
             self.ligne.append(sonde.carte)
-            return True
-        self.refusees.append((self.sondes, sonde.carte, len(self.ligne) - 1))
-        return False
+        return accepte
 
     # --- phase B ---
 

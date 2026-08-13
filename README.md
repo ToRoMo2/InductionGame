@@ -118,6 +118,32 @@ précédait — ce qu'il faut pour vérifier une hypothèse relationnelle. Le je
 carte refusée passerait maintenant — ce serait une information sur le contexte
 courant que le joueur n'a pas payée (§6).
 
+## L'affichage
+
+Deux colonnes : les acceptées à gauche, les refus à droite, **dans l'ordre
+chronologique**.
+
+```
+LIGNE PRINCIPALE                          │ REFUSÉES
+    rang parité ens couleur dos    pli    │ rang parité ens couleur dos    pli
+──────────────────────────────────────────────────────────────────────────────
+ 0. V    impair ♣   noir    ivoire lisse  │
+                                          │ 3    impair ♥   rouge   ivoire plié
+ 1. V    impair ♦   rouge   jaune  lisse  │
+```
+
+Lire la colonne de gauche de haut en bas donne la suite valide sans qu'un refus
+s'y mélange — c'est la lisibilité « ligne principale / lignes d'erreur »
+qu'Eleusis nous apprend (§12).
+
+Ce n'est pas que cosmétique. Placé chronologiquement en regard de la ligne, un
+refus montre **de lui-même** après quelle carte il a eu lieu : les annotations
+« (sonde 5, après 1.) » qu'il fallait ajouter avant deviennent inutiles.
+
+Les attributs dérivés (couleur, parité) ont leur colonne. Ils sont triviaux à
+calculer mais coûteux à calculer *vite*, et les afficher ne révèle rien — ils
+sont déjà annoncés comme dimensions.
+
 ## La testabilité (§5.2)
 
 Le cahier des charges formule la contrainte en fréquence. Le vrai danger est le
