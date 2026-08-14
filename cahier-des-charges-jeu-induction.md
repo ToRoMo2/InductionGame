@@ -55,7 +55,9 @@ Cadrage négatif, à relire à chaque décision de design.
 - Le joueur dispose d'un **budget d'essais fixe** (30 aujourd'hui).
 - À son tour, il ne choisit pas une carte : il **décrit l'expérience qu'il veut mener**, et paie sa précision. Le jeu tire une carte conforme à sa description et répond **acceptée** ou **refusée**.
   - Acceptée → la carte rejoint la **ligne principale**.
-  - Refusée → elle rejoint la liste des refus, **datée** et **située** (numéro de sonde, position de la ligne à ce moment-là).
+  - Refusée → elle s'inscrit dans la **colonne de droite**, en regard chronologique de la ligne principale.
+
+> **Tranché en jouant — l'affichage en deux colonnes.** Les acceptées à gauche, les refus à droite, dans l'ordre. Lire la colonne de gauche de haut en bas donne la suite valide sans qu'un refus s'y mélange : c'est la « lisibilité ligne principale / lignes d'erreur » que le §12 dit avoir prise à Eleusis et qu'on avait perdue en route. Et l'effet dépasse le cosmétique — placé en face de la ligne, un refus montre **de lui-même** après quelle carte il a eu lieu, ce qui a rendu inutiles les annotations « (sonde 5, après 1.) » ajoutées deux itérations plus tôt. La mise en page dit la même chose sans un mot.
 - Le joueur peut à tout moment déclarer qu'il pense avoir compris → passage en phase B.
 
 #### La sonde — le verbe central
