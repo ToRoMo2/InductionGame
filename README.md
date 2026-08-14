@@ -1,7 +1,11 @@
 # InductionGame
 
-Prototype console du jeu d'induction **LEX**. Voir
-`cahier-des-charges-jeu-induction.md` pour la spec complète.
+Prototype console du jeu d'induction **LEX**.
+
+- **`ETAT.md`** — ce qui est fait, ce qui reste à faire, les chiffres, les
+  dettes. *À lire en premier pour reprendre le projet.*
+- **`cahier-des-charges-jeu-induction.md`** — la conception et le pourquoi de
+  chaque décision.
 
 Périmètre actuel : phases 0 et étape 2 livrées, **étape 3 en cours** (§14) — la
 couche run. Terminal, texte brut, stdlib seule. Pas encore d'objets, pas de
@@ -102,7 +106,7 @@ et paie sa précision.
 > hasard                n'importe quelle carte                                (1)
 ```
 
-Prix : 1 essai, +1 par attribut imposé. Budget 30.
+Prix : 1 essai, +1 par attribut imposé.
 
 **La jumelle est la raison d'être du dispositif.** C'est l'observation la plus
 informative du jeu — le validateur l'appelle « témoin pivot » et compte ces
@@ -110,7 +114,8 @@ cas-là pour garantir qu'une loi est déductible — et le joueur n'avait aucun
 moyen de la demander. Elle est vendue moins cher que sa précision ne le
 justifie : un solveur glouton qui optimise l'information par essai ne la prend
 jamais à plein tarif, parce que les sondes larges sont plus rentables par essai
-dépensé. Mais ce solveur met à jour 1711 hypothèses bayésiennement ; un humain
+dépensé. Mais ce solveur met à jour des milliers d'hypothèses bayésiennement ;
+un humain
 non. La valeur d'une jumelle est **cognitive** — elle donne un fait directement
 lisible — et à plein tarif le choix pelle-ou-scalpel n'existerait pas.
 
@@ -123,19 +128,19 @@ contrôlée — et sans expérience contrôlée, l'induction n'est qu'une collec
 de coïncidences. Le paquet n'étant jamais affiché en entier, sa taille ne coûte
 rien.
 
-Étalonnage mesuré : un solveur parfait dépense une médiane de 18 essais sur 30.
+Étalonnage mesuré : un solveur parfait dépense une médiane de 19 essais par
+manche. Voir `ETAT.md` pour tous les chiffres.
 
 ## Le pari
 
 Deux paris indépendants, de même mise `longueur²` :
 
-1. **la suite** — elle **prolonge la carte de départ**, qui juge sa première
-   carte. La main est retirée jusqu'à permettre une suite d'au moins 3 cartes,
-   et **se coucher est légal** (0 point, aucun risque) ; valide, tu encaisses ; une seule carte fausse, la valeur se retourne
-   contre toi. Évaluée sur une ligne neuve, la première carte n'aurait aucune
-   carte précédente : sur les 17 % de lois sans clause absolue, n'importe
-   quelle carte serait passée et un joueur n'ayant rien compris aurait encaissé
-   des points garantis ;
+1. **la suite** — valide, tu encaisses ; une seule carte fausse, la valeur se
+   retourne contre toi. Elle **prolonge la carte de départ**, qui juge sa
+   première carte : évaluée sur une ligne neuve, celle-ci n'aurait aucune carte
+   précédente, et sur les 17 % de lois sans clause absolue n'importe quelle
+   carte serait passée. La main est **retirée jusqu'à permettre au moins 3
+   cartes**, et **se coucher est légal** (0 point, aucun risque) ;
 2. **la loi** — facultatif. Tu la construis par menus (famille → attribut →
    paramètres), pas dans une liste de lois candidates. Juste, tu doubles ;
    faux, tu perds autant ; refuser ne coûte rien.
@@ -151,8 +156,9 @@ La déclaration est jugée sur le **comportement**, jamais sur les mots : une
 formulation que rien d'observable ne distingue de la vraie loi compte juste,
 **y compris dans une autre famille**. « le dos diffère du précédent » est
 reconnu identique à « jamais deux ivoire d'affilée ET jamais deux jaune
-d'affilée ». C'est nécessaire : 190 clauses du catalogue ne produisent que
-156 comportements distincts, et 54 clauses ont un jumeau exact.
+d'affilée ». C'est nécessaire : le catalogue produit nettement moins de
+comportements distincts que de clauses — beaucoup ont un jumeau exact, parfois
+dans une autre famille.
 
 Quand la déclaration est fausse, le jeu **montre où**. Il cherche un cas où les
 deux lois divergent, en privilégiant celui dont la carte est la plus proche

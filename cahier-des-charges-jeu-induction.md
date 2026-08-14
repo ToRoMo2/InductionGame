@@ -13,6 +13,11 @@
 > une expérience** (§4). C'est une refonte du verbe central, décidée après avoir
 > mesuré qu'une manche ne contenait qu'une dizaine de décisions toutes
 > identiques.
+>
+> **Où trouver quoi.** Ce document dit le **pourquoi** de chaque décision.
+> L'**état** du projet — ce qui est fait, ce qui reste, les chiffres, les dettes
+> — est dans **`ETAT.md`**, qui est le fichier à ouvrir en premier pour
+> reprendre le travail.
 
 ---
 
