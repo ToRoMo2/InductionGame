@@ -1,7 +1,7 @@
 # Cahier des charges — Jeu d'induction (nom de code : **LEX**)
 
 > Document interne. Non destiné à la publication ni à la communication externe.
-> Version 0.2 — mis à jour après le prototype console jouable.
+> Version 0.3 — mise à jour après la couche run et le test externe concluant.
 >
 > **Ce qui a changé depuis la 0.1.** La v0.1 était spéculative ; la v0.2 décrit
 > un jeu qui existe et qui a été joué. Tout ce qui a été tranché en jouant est
@@ -14,10 +14,12 @@
 > mesuré qu'une manche ne contenait qu'une dizaine de décisions toutes
 > identiques.
 >
-> **Où trouver quoi.** Ce document dit le **pourquoi** de chaque décision.
-> L'**état** du projet — ce qui est fait, ce qui reste, les chiffres, les dettes
-> — est dans **`ETAT.md`**, qui est le fichier à ouvrir en premier pour
-> reprendre le travail.
+> **Où trouver quoi.**
+> - Ce document : le **pourquoi** de chaque décision.
+> - **`ETAT.md`** : l'**état** — fait, à faire, chiffres, dettes. À ouvrir en premier.
+> - **`PISTES-renouvellement.md`** : les idées **non tranchées** sur le §16.7.
+>   Rien n'y est décidé ; ce fichier meurt quand ses idées sont intégrées ici ou
+>   rejetées par écrit.
 
 ---
 
@@ -57,7 +59,7 @@ Cadrage négatif, à relire à chaque décision de design.
 ### Phase A — Enquête
 
 - Le système génère une **loi secrète** (voir §5) et distribue une **carte de départ**, qui satisfait toujours la loi.
-- Le joueur dispose d'un **budget d'essais fixe** (30 aujourd'hui).
+- Le joueur dispose d'un **budget d'essais fixe** : 30 en manche isolée, ou le reliquat du run s'il est en duel (§8).
 - À son tour, il ne choisit pas une carte : il **décrit l'expérience qu'il veut mener**, et paie sa précision. Le jeu tire une carte conforme à sa description et répond **acceptée** ou **refusée**.
   - Acceptée → la carte rejoint la **ligne principale**.
   - Refusée → elle s'inscrit dans la **colonne de droite**, en regard chronologique de la ligne principale.
@@ -83,7 +85,7 @@ Prix = 1 essai, +1 par attribut imposé.
 
 > **Tranché en jouant — la jumelle est vendue sous son prix.** Elle épingle trois attributs, elle devrait coûter 4. Un solveur glouton qui optimise l'information par essai ne la prend jamais à ce tarif : les sondes larges rapportent plus par essai dépensé. Mais ce solveur met à jour 1711 hypothèses bayésiennement, un humain non. La valeur d'une jumelle est **cognitive**, pas informationnelle. À plein tarif, le choix pelle-ou-scalpel n'existerait pas.
 
-> **Tranché en jouant — budget fixe, pas croissant.** Le risque de boule de neige identifié en v0.1 était réel ; on a retenu l'alternative qu'elle proposait. Les essais économisés ne rapportent pas de points, ils **multiplient le score** (§9).
+> **Tranché en jouant — budget fixe, pas croissant.** Le risque de boule de neige identifié en v0.1 était réel ; on a retenu l'alternative qu'elle proposait. Les essais économisés ne rapportent pas de points, ils **multiplient le score** (§9) — sauf en run, où le report de budget joue déjà ce rôle.
 
 ### Phase B — Le pari
 
@@ -354,6 +356,8 @@ Deux boucles concurrentes, à hiérarchiser :
 
 `score = (suite + loi) × (1 + essais_restants / budget)`, plafonné à ×2, **appliqué aux pertes autant qu'aux gains**.
 
+> **En run, ce multiplicateur est désactivé** (§8). Le report du budget d'une manche à l'autre récompense déjà la vitesse ; cumuler les deux paierait deux fois la même vertu et rendrait l'enquête trop chère. Le §9 tient alors en différé : comprendre vite, c'est avoir de quoi comprendre encore.
+
 > **Tranché en jouant, sur une objection du joueur.** L'idée naturelle — convertir les essais restants en points — est une faute de conception à deux titres. D'abord elle fait **coûter des points à l'enquête**, ce qui inverse exactement l'incitation que le §9 cherche. Ensuite elle s'exploite trivialement : on déclare n'importe quoi au premier tour et on empoche le budget entier. Un multiplicateur sur zéro fait zéro ; la mise en friche ne rapporte plus rien.
 >
 > **L'appliquer aux pertes est ce qui fait tenir l'ensemble.** Sinon se précipiter serait du gain gratuit — gros si j'ai raison, petit si j'ai tort. Des deux côtés, la vitesse cesse d'être un bonus et devient un **multiplicateur de risque** : comprendre vite paie, croire avoir compris vite coûte cher. C'est le §9 sans la boule de neige que le §4 redoutait.
@@ -453,7 +457,7 @@ Mettre un ami devant, sans explication, et chronométrer. Observer où il coince
 
 > Précédent utile : le déclic de Balatro n'a pas été une intuition de marché, mais un ami disant avoir joué 30 ou 40 heures. Signal comportemental, jamais déclaratif.
 
-### Résultat du premier test externe
+### Résultat du test externe — **concluant**
 
 **Sujet** : joueur non codeur, aucune explication préalable, plusieurs manches.
 
@@ -465,7 +469,11 @@ Mettre un ami devant, sans explication, et chronométrer. Observer où il coince
 
 **Ne pas conclure « il faut des graphismes ».** Ce serait sauter à l'étape 4 sur un seul témoignage, avant d'avoir épuisé ce que le texte permet. Si le tableau ne change rien, alors le diagnostic est différent — et plus sérieux, car il porterait sur la charge mentale de la déduction elle-même, pas sur son emballage.
 
-**Donnée manquante, et c'est la décisive** : a-t-il redemandé à jouer ?
+**Seconde session, après le correctif.** Il confirme que l'affichage en colonnes est nettement plus lisible. Et surtout : **il a réinstallé le jeu sur son propre PC et l'a relancé de lui-même, en stream.**
+
+> **Le signal décisif du §13 est donné, et il est positif.** Le §13 exige un indicateur comportemental, jamais déclaratif, et cite l'ami de Balatro annonçant trente heures de jeu. Celui-ci n'a pas *demandé* à rejouer : il est allé chercher le jeu et l'a joué en public, sur son matériel. C'est plus fort qu'une demande.
+>
+> Conséquence de méthode : la phase 0 n'est plus spéculative. Le §13 disait « tant que ce n'est pas répondu, tout le reste du document est spéculatif ». C'est répondu.
 
 ---
 
@@ -476,7 +484,7 @@ Mettre un ami devant, sans explication, et chronométrer. Observer où il coince
 | **0** | Jouer à Eleusis Express sur table | Test de sensation, 2 h | — |
 | **1** | Générateur console, 3 briques | La boucle est grisante en texte brut | **franchie** (auteur) ; **test externe en attente** |
 | **2** | Élargissement de la grammaire — **par famille, pas par attribut** | La reconnaissance ne remplace pas la découverte avant la manche N | **famille conditionnelle livrée** ; condition à mesurer en jouant |
-| **3** | Couche run : objets, escalade, défaite | Un run donne envie d'en relancer un | à venir |
+| **3** | Couche run : objets, escalade, défaite | Un run donne envie d'en relancer un | **en cours** — colonne vertébrale faite (budget partagé), adversaires prototypés ; manquent objets, défaite, phase d'étude |
 | **4** | Interface graphique + DA médiévale | Tout le reste est validé | à venir |
 
 **Ne jamais sauter une étape.** Chaque passage se décide sur du ressenti mesuré, pas sur de l'enthousiasme.
@@ -519,7 +527,7 @@ C'est ce nombre qui dit si la saturation est un problème urgent ou lointain, et
 
 ### Tranchées en jouant
 
-1. ~~Budget d'essais : croissant ou fixe ?~~ → **fixe**, 30 essais, avec un **coût variable par sonde**. Les essais économisés multiplient le score (§9). La boule de neige redoutée par le §4 est évitée sans perdre la liaison du §9.
+1. ~~Budget d'essais : croissant ou fixe ?~~ → **fixe**, avec un **coût variable par sonde**. 30 essais en manche isolée, où les essais économisés multiplient le score ; **un budget partagé sur tout le run** en duel, où le report joue ce rôle et le multiplicateur est désactivé (§8). La boule de neige redoutée par le §4 est évitée sans perdre la liaison du §9.
 2. ~~Forme de la phase de pari ?~~ → **longueur libre, tout ou rien**, depuis une main tirée de 12, la suite prolongeant la carte de départ. **Plus une déclaration facultative de la loi**, de même mise, jugée sur le comportement.
 
 ### Encore ouvertes
@@ -565,6 +573,14 @@ C'est ce nombre qui dit si la saturation est un problème urgent ou lointain, et
 6. **Nom du jeu.**
 
 ### Ouverte, et la plus lourde — soulevée par un testeur
+
+> **Un fichier lui est consacré : `PISTES-renouvellement.md`.** Il contient le diagnostic, un principe directeur, les pistes et un ordre de test. Rien n'y est tranché ; ce qui le sera remontera ici.
+>
+> Deux acquis de ce fichier valent d'être rappelés ici, parce qu'ils cadrent tout le reste :
+>
+> **Le filtre.** *Est-ce que l'idée change ce à quoi le joueur pense, ou seulement ce avec quoi il y pense ?* Corollaire assumé : **la conquête, les rois, la carte et les territoires sont un habillage** — ils peuvent rester, mais ils ne répondent pas à cette question et ne doivent pas être comptés comme y répondant.
+>
+> **Le principe directeur.** *Un build ne s'achète pas contre l'inconnu, il s'achète contre une hypothèse.* Choisir son équipement avant de savoir quoi que ce soit est un pari aveugle, pas un choix. Tout ce que le joueur achète doit engager **sa lecture** de la situation — ce que la phase B fait déjà, et qu'il s'agit d'étendre au reste.
 
 7. **Le joueur est-il assez maître de sa partie ?** Chaque manche propose le même verbe : j'observe, je teste, je déduis, je propose. La refonte de la sonde (§4) a beaucoup amélioré ça — le joueur compose désormais son expérience — mais la critique de fond tient : là où un roguelike de cartes renouvelle l'**espace d'action** à chaque run, nous ne renouvelons que l'**espace de contenu**, et le contenu sature au niveau des formes.
 

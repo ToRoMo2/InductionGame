@@ -6,6 +6,8 @@ Prototype console du jeu d'induction **LEX**.
   dettes. *À lire en premier pour reprendre le projet.*
 - **`cahier-des-charges-jeu-induction.md`** — la conception et le pourquoi de
   chaque décision.
+- **`PISTES-renouvellement.md`** — idées non tranchées sur le renouvellement du
+  gameplay (§16.7).
 
 Périmètre actuel : phases 0 et étape 2 livrées, **étape 3 en cours** (§14) — la
 couche run. Terminal, texte brut, stdlib seule. Pas encore d'objets, pas de

@@ -1,8 +1,10 @@
 # État du projet — ce qui est fait, ce qui reste
 
 > Fichier de suivi. À lire en premier pour reprendre le projet après une pause.
-> Le **pourquoi** de chaque décision est dans `cahier-des-charges-jeu-induction.md` ;
-> ici on ne garde que **l'état** et les **chiffres**.
+>
+> - le **pourquoi** de chaque décision : `cahier-des-charges-jeu-induction.md`
+> - les idées **non tranchées** sur le §16.7 : `PISTES-renouvellement.md`
+> - ici : l'**état** et les **chiffres**, rien d'autre.
 >
 > Règle de tenue : rien ne se décide sans être écrit ici. Une idée qui n'est pas
 > dans ce fichier n'existe pas.
@@ -60,7 +62,8 @@ Tous mesurés, aucun deviné. Entre parenthèses, où ils vivent dans le code.
 | mesure | valeur |
 |---|---|
 | plancher d'un solveur parfait | **~19 essais par manche** (médiane) |
-| marge laissée à l'humain | ~1,6× en run (120 pour ~114 de plancher) |
+| marge, manche isolée | **1,6×** (30 pour 19) |
+| marge, run | **1,05×** (120 pour ~114) — **très serré, à réétalonner** |
 | taux d'acceptation du générateur | ~40 % des lois tirées au hasard |
 | temps de génération | médiane 0,6 s, pic 3,4 s |
 
@@ -202,19 +205,20 @@ viser le 100 %.
 |---|---|---|
 | §16.3 | Condition de défaite d'un run | **ouverte** — aucune pour l'instant, le run va au bout |
 | §16.6 | Nom du jeu | ouverte |
-| §16.7 | Le joueur est-il assez maître de sa partie ? | **ouverte** — beaucoup améliorée par la sonde, pas close |
+| §16.7 | Le joueur est-il assez maître de sa partie ? | **ouverte** — voir `PISTES-renouvellement.md`, qui lui est entièrement consacré |
 | §8 | Objets de run | ouverte — règle d'or : confort ou risque, **jamais** d'information |
 | — | Escalade en cours de run | le budget qui s'épuise en tient lieu ; suffisant ? |
 
-Pistes notées pour §16.7, non tranchées :
-- **plusieurs lois en parallèle, un seul budget** — chaque tour devient une
-  allocation ; spécialiste ou généraliste devient une identité de partie ;
-- **paquets pré-construits à caractère** — attention, la composition **libre**
-  est un piège : un paquet dégénéré rend une dimension intestable, donc le
-  générateur ne peut plus produire de loi qui la touche, donc le joueur connaît
-  la famille avant de commencer. **Bornée uniquement** ;
-- **engagement partiel façon Obra Dinn** — inscrire des faits isolés au fil de
-  l'enquête, confirmés par lots.
+Les pistes du §16.7 vivent désormais dans **`PISTES-renouvellement.md`** :
+diagnostic, principe directeur, axes de build, instruments, nature du secret,
+et un ordre de test. Deux choses en sont à retenir même sans le lire :
+
+- **le filtre** — *est-ce que l'idée change ce à quoi le joueur pense, ou
+  seulement ce avec quoi il y pense ?* Corollaire assumé : la conquête, les
+  rois et la carte sont un **habillage**, et ne répondent pas au §16.7 ;
+- **le principe directeur** — *un build ne s'achète pas contre l'inconnu, il
+  s'achète contre une hypothèse.* Ce que le joueur paie doit engager sa lecture
+  de la situation, jamais un pari aveugle.
 
 ---
 
@@ -236,9 +240,17 @@ Pistes notées pour §16.7, non tranchées :
 1. **Le Sénéchal contre l'Archiviste.** Affronter le second se sent-il
    différent du premier ? *Si oui, toute la structure de conquête tient et le
    reste n'est qu'habillage. Si non, aucun pixel art ne la sauvera.*
-2. **Le budget de 120 est-il le bon ?** Le bon réglage est celui où on lâche
-   une ou deux manches **en le décidant**, pas en le subissant. Trop de budget
-   restant à la fin → trop large ; à sec à la manche 4 → trop serré.
+2. **Le budget de 120 est-il le bon ? — priorité, et un chiffre était faux.**
+   Une version antérieure de ce fichier annonçait une marge de 1,6× en run.
+   C'est faux : 1,6× est la marge de la **manche isolée** (30 pour 19). En run,
+   120 pour ~114 de plancher fait **1,05×** — un solveur parfait épuiserait
+   presque tout le budget, et un humain est très en dessous d'un solveur.
+   Le budget est donc probablement **beaucoup trop serré**, et il faut le
+   corriger *avant* de juger la structure de run : sinon on conclura qu'elle
+   est mauvaise alors que c'est le réglage. Pour une marge de 1,3× il faudrait
+   ~148, pour 1,6× ~182.
+   Le bon réglage reste celui où on lâche une ou deux manches **en le
+   décidant**, pas en le subissant.
 3. ~~Retester l'affichage en colonnes~~ — **fait, concluant.**
 4. ~~A-t-il redemandé à jouer ?~~ — **fait : il a relancé de lui-même, en
    stream, sur son PC.** Signal décisif du §13, positif.
