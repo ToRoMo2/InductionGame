@@ -21,7 +21,7 @@ Quatre familles de briques, une loi en combine deux :
 **L'élargissement se fait par famille, jamais par attribut**, et c'est mesuré :
 le joueur n'apprend pas les lois, il apprend les **formes**. Un attribut de plus
 n'ajoute que 4 formes ; une famille multiplie. L'ajout de la conditionnelle a
-fait passer la grammaire de 22 à 47 formes, et le plancher du solveur parfait
+fait passer la grammaire de 23 à 48 formes, et le plancher du solveur parfait
 de 18 à 19 essais seulement — plus de variété sans plus de difficulté.
 
 Le tirage est **équiprobable par famille**, pas par clause : la conditionnelle

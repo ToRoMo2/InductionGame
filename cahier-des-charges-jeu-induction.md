@@ -149,7 +149,7 @@ La distinction qui compte n'est pas classique / caché, c'est **indépendant / d
 
 Une loi = 1 à 3 briques combinées. **Les quatre familles sont implémentées.**
 
-> **Mesuré à l'étape 2.** La conditionnelle a fait passer la grammaire de **22 à 47 formes** de règle, alors que le plancher du solveur parfait n'est monté que de 18 à 19 essais : plus de variété sans plus de difficulté. C'est la démonstration qu'élargir par **famille** est le bon levier, et par attribut le mauvais.
+> **Mesuré à l'étape 2.** La conditionnelle a fait passer la grammaire de **23 à 48 formes** de règle, alors que le plancher du solveur parfait n'est monté que de 18 à 19 essais : plus de variété sans plus de difficulté. C'est la démonstration qu'élargir par **famille** est le bon levier, et par attribut le mauvais.
 >
 > **Piège découvert en l'ajoutant.** La conditionnelle représente à elle seule 70 % du catalogue de clauses. Un tirage uniforme sur les clauses donnait 50 % de lois conditionnelles et une séquentielle sur vingt-quatre : la nouvelle famille étouffait les anciennes. Le tirage est donc **équiprobable par famille**, jamais par clause — le joueur vit des familles, pas des instances.
 
@@ -190,6 +190,7 @@ Problème : si la loi porte sur le dos des cartes et que le joueur ignore que le
 Conséquences :
 - Le mystère porte sur **quelle loi**, jamais sur **quelles dimensions existent**.
 - La découverte progressive du vocabulaire devient un moteur de progression roguelike naturel.
+- **Le principe s'étend aux FORMES DE RÈGLES, pas seulement aux dimensions** — voir §16.5. C'est même là qu'il rend le plus : le stock de formes est fini (48) et se consomme en une soirée si on le montre d'un coup.
 - Coût d'implémentation : trivial.
 
 ### Provoquer la découverte sans la forcer
@@ -215,7 +216,7 @@ Trois curseurs **indépendants**, à faire monter **en décalé** — jamais ens
 | Curseur | Progression |
 |---|---|
 | Nombre de dimensions actives | rang → rang + dos → rang + dos + pli → … |
-| Complexité de la loi | 1 brique → 2 briques → conditionnelle |
+| Complexité de la loi | 1 brique → 2 briques → conditionnelle. **Fourni par le déblocage du vocabulaire de formes (§16.5)** : l'espace d'hypothèses passe de 171 à 17 578 lois entre le premier et le dernier palier. Ce curseur n'a pas besoin d'exister à part. |
 | Budget d'essais | se resserre |
 | Tarif des sondes | la jumelle renchérit |
 
@@ -436,7 +437,42 @@ C'est ce nombre qui dit si la saturation est un problème urgent ou lointain, et
 
 3. **Structure du run** : combien de manches, quelle condition de défaite ? *C'est le principal chantier restant (§8).*
 4. Adversaire abstrait ou score cible ? **Défaut retenu : score cible.** Non remis en cause.
-5. **Méta-progression entre runs** : déblocage de dimensions, de briques, ou rien ? *Un argument nouveau en faveur du déblocage, apparu en jouant : la surprise vient de la découverte d'une **forme** de règle jamais vue, et ce stock s'épuise (22 formes, §14). Le débloquer progressivement étale une ressource rare au lieu de la brûler en dix manches.*
+5. ~~**Méta-progression entre runs** : déblocage de dimensions, de briques, ou rien ?~~ → **tranchée : déblocage des FORMES DE RÈGLES.** Conception retenue ci-dessous.
+
+### 16.5 — Le vocabulaire de formes (conception retenue, à construire à l'étape 3)
+
+**Le problème, constaté en jouant.** Le constructeur de déclaration montre au joueur le catalogue entier des formes de règles. Dès la deuxième partie il les a toutes lues, et une loi d'une forme inédite ne surprend plus — il l'avait parcourue en cherchant comment énoncer la précédente. *« La surprise n'est pas si grande quand une nouvelle loi tombe, je peux déjà l'avoir lue en cherchant une loi pendant la partie précédente. »* La surprise de forme est une **ressource finie**, et on la brûle intégralement en une soirée.
+
+**Le principe.** Le §6 dit que le générateur ne compose ses lois qu'à partir du vocabulaire acquis. Il visait les dimensions des cartes ; on l'étend aux **formes de règles**. Le joueur démarre avec un catalogue réduit, et il s'enrichit en jouant.
+
+**Le mécanisme.**
+
+1. Le joueur possède un **vocabulaire de formes**, sous-ensemble du catalogue. Le constructeur de déclaration ne montre que celles-là.
+2. La plupart des manches tirent une loi **dans** ce vocabulaire : le joueur peut toujours énoncer ce qu'il a compris.
+3. Parfois, la manche tire une forme **hors** vocabulaire. Alors **la déclaration n'est pas proposée** — bouton grisé, avec une mention. Le joueur mise seulement sur sa suite.
+4. Son absence est elle-même l'information : *il y a ici quelque chose que je n'ai pas les mots pour dire.* C'est la carte qui tremble du §6, transposée des dimensions aux formes.
+5. À la révélation : « **Vous avez découvert une nouvelle forme de loi.** » Elle entre au vocabulaire et sera disponible ensuite.
+
+**La règle de justice qui rend tout ça acceptable.** Sur une manche à forme inconnue, le joueur **ne perd rien** sur la déclaration — elle n'existe pas, elle n'est pas ratée. Sans cette règle, il perdrait son second pari en ayant parfaitement compris, faute de pouvoir l'énoncer : c'est l'injustice exacte qu'on a corrigée quand le constructeur ne savait pas dire les conditionnelles.
+
+**Bénéfice non prévu — le déblocage EST la courbe de difficulté.** Mesuré :
+
+| vocabulaire | clauses | formes | lois |
+|---|---|---|---|
+| absolue | 18 | 5 | 171 |
+| + relationnelle | 31 | 18 | 496 |
+| + séquentielle | 55 | 23 | 1 540 |
+| + conditionnelle | 187 | 48 | 17 578 |
+
+**L'espace d'hypothèses est multiplié par cent entre le premier et le dernier palier.** Un débutant cherchant parmi 171 lois fait un travail réellement plus simple. Le §7 réclamait un curseur « complexité de la loi » : il est là, gratuit, et n'a pas besoin d'exister à côté.
+
+**Note d'implémentation à ne pas perdre.** Le validateur utilise le catalogue complet comme espace de rivales. Avec un vocabulaire restreint, **il faut restreindre les rivales aussi** — sinon le générateur rejetterait des lois pour cause de confusion avec des rivales que le joueur ne peut pas concevoir. Peu de code, mais l'oubli rendrait le jeu injuste sans qu'on comprenne pourquoi.
+
+**Réglages non tranchés**, qui décideront du ressenti et ne se devinent pas :
+- **fréquence** des manches à forme inconnue — trop souvent, on ne déclare jamais ; trop rare, on ne découvre rien ;
+- **annoncé ou déduit** — le jeu le dit franchement, ou laisse constater que la déclaration n'est pas offerte. Préférence : le second, ça se remarque tout seul.
+
+**Piste associée (plus tard).** Chaque forme découverte débloque un **succès masqué** ; la liste grandit à mesure, le joueur peut viser le 100 %. Contrainte impérative si on le fait : les succès non obtenus doivent rester **entièrement masqués**. Un succès qui nomme une forme non découverte annule le mécanisme qu'on vient de décrire.
 6. **Nom du jeu.**
 
 ### Ouverte, et la plus lourde — soulevée par un testeur
