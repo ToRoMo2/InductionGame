@@ -84,6 +84,8 @@ Prix = 1 essai, +1 par attribut imposé.
 
 - Le joueur accède à une main **bornée** : 12 cartes tirées du paquet. Jamais l'accès total, sinon le problème devient un exercice de tableur.
 - **La main est retirée jusqu'à permettre une suite d'au moins trois cartes**, et **se coucher est permis** : une suite vide vaut zéro, sans risque.
+- Il construit la **suite la plus rentable possible**, sans se tromper. Elle **prolonge la carte de départ**, qui juge sa première carte.
+- Puis, **facultativement, il énonce la loi**. Second pari de même mise : juste, il double ; faux, il perd autant ; refuser ne coûte rien.
 
 > **Tranché en jouant — le tirage fait partie de ce qui doit être juste.** Un joueur avait parfaitement compris « le pli diffère du précédent ET la couleur diffère du précédent », départ noir et plié. Dans sa main de douze, toutes les rouges étaient pliées et toutes les lisses étaient noires : **aucune carte jouable**, et le jeu l'obligeait à en poser une. Il perdait pour avoir compris.
 >
@@ -92,8 +94,6 @@ Prix = 1 essai, +1 par attribut imposé.
 > Deux corrections indépendantes. La main est **retirée** tant qu'elle ne permet pas trois cartes : la compréhension doit pouvoir se convertir en points, sinon l'enquête ne sert à rien. Et **se coucher devient légal** : obliger à miser transforme un doute lucide en perte forcée, alors que le §4B demande « la suite la plus rentable possible » — parfois c'est l'absence de suite.
 >
 > La révélation indique enfin la **meilleure suite que la main permettait**. Sans ce repère, le joueur ne sait pas si son pari était timide ou si la main était pauvre.
-- Il construit la **suite la plus rentable possible**, sans se tromper. Elle **prolonge la carte de départ**, qui juge sa première carte.
-- Puis, **facultativement, il énonce la loi**. Second pari de même mise : juste, il double ; faux, il perd autant ; refuser ne coûte rien.
 
 > **Tranché en jouant — la déclaration de la loi n'était pas dans la v0.1, et son absence était un trou.** Un joueur a encaissé le maximum de points avec un modèle faux : son hypothèse « uniquement du rouge » était plus restrictive que la vraie loi, donc toute suite qu'elle autorisait était sûre. **Une hypothèse fausse mais incluse dans la vérité gagne autant qu'une compréhension exacte.** Le pari ne testait que le comportement ; il fallait un endroit où la compréhension elle-même s'engage.
 
