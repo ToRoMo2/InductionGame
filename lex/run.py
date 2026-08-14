@@ -32,6 +32,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass, field
 
+from .boss import Roi
 from .game import Partie
 from .generator import generer
 
@@ -58,6 +59,7 @@ class Run:
     manches: int = MANCHES
     budget: int = BUDGET
     n_clauses: int = 2
+    roi: Roi | None = None
 
     restant: int = 0
     score: int = 0
@@ -72,7 +74,11 @@ class Run:
         if self.numero >= self.manches:
             return None
         self.numero += 1
-        donne = generer(seed=self.seed + self.numero, n_clauses=self.n_clauses)
+        donne = generer(
+            seed=self.seed + self.numero,
+            n_clauses=self.n_clauses,
+            poids=self.roi.poids if self.roi else None,
+        )
         # Le budget de la manche EST le reliquat du run : c'est tout le
         # mecanisme. Le multiplicateur ne survit qu'en manche isolee, ou il n'y
         # a pas de suite a qui reporter les essais : sans lui, economiser n'y
@@ -102,7 +108,13 @@ def nouveau_run(
     manches: int = MANCHES,
     budget: int = BUDGET,
     n_clauses: int = 2,
+    roi: Roi | None = None,
 ) -> Run:
     if seed is None:
         seed = random.randrange(1, 10**9)
-    return Run(seed=seed, manches=manches, budget=budget, n_clauses=n_clauses)
+    # Un roi fixe le format du duel : c'est lui qui dit combien de manches et
+    # combien d'essais, pas les valeurs par defaut.
+    if roi is not None:
+        manches, budget = roi.manches, roi.budget
+    return Run(seed=seed, manches=manches, budget=budget,
+               n_clauses=n_clauses, roi=roi)

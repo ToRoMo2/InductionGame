@@ -228,11 +228,77 @@ Trois curseurs **indépendants**, à faire monter **en décalé** — jamais ens
 
 ## 8. Couche roguelike
 
-État actuel : boucle de manche solide, **structure de run encore à concevoir**. C'est le principal chantier de design restant.
+État actuel : boucle de manche solide, **run construit** (budget partagé), **structure de conquête conçue et partiellement prototypée**.
+
+---
+
+### 8.A — La conquête : cadre général
+
+Le joueur est un homme du Moyen Âge — le style, pas la fantasy. Il reprend des territoires un par un jusqu'à régner sur la région, puis le pays. À chaque étape il doit **destituer le seigneur en place en le battant à ce jeu**.
+
+La justification tient en une phrase, et c'est elle qui rend le thème nécessaire plutôt que décoratif : **dans ce monde, tout se décide par la capacité à déduire une règle d'une situation.** C'est ainsi qu'on juge qui est apte à gouverner. Le §10 cherchait « une coutume jamais écrite, un tribunal dont on ignore le code » pour donner une raison narrative au secret — la voilà.
+
+Progression sur une **carte vue du dessus** en pixel art, avec des points d'intérêt, dans l'esprit d'une carte de Mario Bros. Chaque territoire repris est un accomplissement lisible.
+
+### 8.B — Le cycle : étudier, puis affronter
+
+**C'est la partie la plus forte de la proposition, et il faut comprendre pourquoi.**
+
+Avant un duel, le joueur **étudie son adversaire** : ses habitudes, le genre de lois qu'il affectionne, ses angles morts. Puis il l'affronte sur un format — nombre de manches, budget — fixé par la difficulté de l'adversaire.
+
+Étudier un adversaire, c'est **une seconde boucle d'induction à une autre échelle de temps**. Le jeu se met à faire, au niveau du run, ce qu'il fait déjà au niveau de la manche. Et ça résout deux problèmes en attente : le vocabulaire de formes du §16.5 obtient une raison d'exister dans la fiction plutôt qu'un déblocage arbitraire, et le §3 pilier 1 — *« savoir doit coûter quelque chose »* — trouve un endroit où il s'applique littéralement, puisqu'on paie pour étudier.
+
+> **La ligne à ne jamais franchir, et la seule qui compte ici.**
+>
+> Le §8 interdit qu'un objet donne de l'information. L'étude en donne — violation ? **Non**, et la distinction doit être écrite noir sur blanc parce qu'elle sera invoquée souvent :
+>
+> **L'étude révèle la DISTRIBUTION dont la loi est tirée, jamais l'INSTANCE.**
+>
+> Savoir que cet adversaire affectionne les conditionnelles ne dit pas laquelle il a choisie ce soir. C'est la différence entre resserrer ses hypothèses a priori et recevoir la réponse. Le jour où quelqu'un proposera « un objet qui révèle une clause », c'est cette ligne qui permettra de dire non sans hésiter.
+
+### 8.C — Un adversaire est un jeu de paramètres, jamais un personnage
+
+**C'est le piège principal de toute la proposition.** Une carte à points d'intérêt et des seigneurs ayant chacun leur caractère, c'est du **contenu écrit à la main**. Le §3 pilier 2 dit : *« le contenu émerge des règles, jamais de la production manuelle. Une grammaire, pas un catalogue. »* Et le §2 dit : *« pas un jeu narratif, aucune histoire écrite à la main. »*
+
+Vingt seigneurs rédigés un par un forment un catalogue : produit lentement, consommé une fois, impossible à étendre sans rédiger. C'est exactement le modèle refusé en première page.
+
+**Règle retenue :** un adversaire est une **pondération des familles de briques**, un budget, un nombre de manches — et plus tard des PV, une dimension interdite, un format particulier. On en engendre quarante d'un coup. Le nom, le blason et deux lignes d'ambiance se posent par-dessus et sont interchangeables.
+
+Ce que ça préserve : un adversaire « différent » l'est **mécaniquement**, pas littérairement. Et c'est bien la différence mécanique qui donne un sens à « se préparer contre celui-ci ».
+
+> **Prototypé et mesuré** (`lex/boss.py`). Trois témoins de test volontairement contrastés, sur la répartition des familles des lois produites :
+>
+> | adversaire | absolue | relation | séquence | conditionnelle | format |
+> |---|---|---|---|---|---|
+> | le Sénéchal | 35 % | **52 %** | 8 % | 4 % | 6 manches, 130 essais |
+> | l'Archiviste | 17 % | 12 % | 10 % | **60 %** | 6 manches, 130 essais |
+> | la Prévôte | 44 % | 23 % | 21 % | 12 % | **4 manches, 70 essais** |
+>
+> Le biais ne verrouille rien : il penche, il n'oblige pas. Une distribution, jamais une certitude — sinon l'étude donnerait la réponse et le 8.B tomberait.
+
+### 8.D — Le duel en points de vie : ce que ça coûte
+
+Proposition : les points marqués infligent des dégâts, les points perdus en encaissent. Faire tomber l'adversaire à zéro dans le nombre de manches imparti. Sinon match nul et report ; si le joueur tombe, une punition reste à définir.
+
+> **Cela renverse le §16.4**, qui avait écarté l'adversaire abstrait : *« un ennemi coûte des assets et du design non nécessaires pour l'instant. »* Renversement légitime — mais voici la facture.
+
+**Le problème est arithmétique.** Un pari vaut `±longueur²`, la main compte 12 cartes, et la déclaration de loi double la mise. **Une seule manche peut donc valoir de −288 à +288.** Si les points sont des dégâts bruts, soit une manche ratée tue quel que soit le barème de PV, soit les PV sont si gros que les manches prudentes ne pèsent plus rien. Il faudra **plafonner la mise** ou **découpler dégâts et score**. Ce n'est pas rédhibitoire, c'est le vrai travail de cette idée.
+
+**Et la question qui décide de tout : qu'est-ce que l'adversaire *fait* ?** Un ennemi qui n'a que des PV est un score cible déguisé — la même chose, avec un costume. Pour que ce soit un duel, il doit peser sur la façon de jouer : biaiser la loi vers son style (fait), rogner le budget (fait), interdire une dimension, raccourcir les manches (fait), imposer un format de pari. C'est là qu'il devient un objet de design plutôt qu'un nombre.
+
+### 8.E — Ordre de construction
+
+1. **L'adversaire comme profil de génération** — *fait*. Ni carte, ni PV, ni étude.
+2. **La question à trancher en jouant** : *affronter le second adversaire se sent-il différent du premier ?* Si oui, toute la structure de conquête tient et le reste n'est qu'habillage. Si non, aucun pixel art ne la sauvera.
+3. Ensuite seulement : la phase d'étude, puis les PV avec leur plafonnement, puis la carte.
+
+### Règle d'or des objets
 
 ### Règle d'or des objets
 
 > Un objet donne du **confort** ou du **risque**. Jamais de l'**information**.
+
+Rappel du 8.B : la phase d'étude n'y déroge pas, parce qu'elle porte sur la **distribution** et non sur l'**instance**.
 
 Un objet qui révèle une clause détruit la boucle. Le meilleur objet du jeu est celui qui pousse à **parier davantage**.
 

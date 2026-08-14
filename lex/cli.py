@@ -7,6 +7,7 @@ import random
 import textwrap
 from typing import Sequence
 
+from .boss import PAR_CLE, ROIS, Roi
 from .bricks import Clause
 from .cards import ATTRIBUTS, CATEGORIELS, Carte, lire_description
 from .game import ESSAIS, Partie, Phase, nouvelle_partie
@@ -581,14 +582,20 @@ def jouer(
     n_clauses: int = 2,
     manches: int = MANCHES,
     budget: int = BUDGET,
+    roi: Roi | None = None,
 ) -> int:
-    run = nouveau_run(seed=seed, manches=manches, budget=budget, n_clauses=n_clauses)
+    run = nouveau_run(seed=seed, manches=manches, budget=budget,
+                      n_clauses=n_clauses, roi=roi)
     print()
     trait("=")
-    print("LEX")
+    print("LEX" if roi is None else f"LEX — face {roi.contracte}")
     trait("=")
-    if manches > 1:
-        print(f"{manches} manches, {budget} essais pour TOUT le run.")
+    if roi is not None:
+        print(f"On dit qu'{roi.pronom} {roi.indice}.")
+        print(f"Un bruit de couloir, pas une certitude : {roi.pronom} penche,\n{roi.pronom} n'obéit pas.")
+        print()
+    if run.manches > 1:
+        print(f"{run.manches} manches, {run.budget} essais pour TOUT le duel.")
         print("Fouiller à fond une manche, c'est se priver pour les suivantes.")
 
     while True:
@@ -616,6 +623,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="python -m lex", description="LEX, phase 0.")
     p.add_argument("--seed", type=int, default=None, help="rejouer la même manche")
     p.add_argument("--clauses", type=int, default=2, help="nombre de briques (1 ou 2)")
+    p.add_argument("--roi", type=str, default=None,
+                   help="affronter un adversaire : " + ", ".join(r.cle for r in ROIS))
+    p.add_argument("--rois", action="store_true", help="lister les adversaires")
     p.add_argument("--manches", type=int, default=MANCHES,
                    help="nombre de manches du run (1 = manche isolée)")
     p.add_argument("--budget", type=int, default=None,
@@ -629,10 +639,25 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = p.parse_args(argv)
     global ETROIT
     ETROIT = args.etroit
+    if args.rois:
+        print()
+        for r in ROIS:
+            print(f"  {r.cle:<12} {r.resume()}")
+            print(f"  {'':<12} on dit qu'{r.pronom} {r.indice}")
+        print()
+        return 0
+
+    roi = None
+    if args.roi:
+        roi = PAR_CLE.get(args.roi.lower())
+        if roi is None:
+            print(f"adversaire inconnu : {args.roi}. « --rois » pour la liste.")
+            return 1
+
     budget = args.budget
     if budget is None:
         # Une manche isolee n'est pas un run d'une manche : elle garde son
         # budget d'origine et son multiplicateur.
         budget = ESSAIS if args.manches == 1 else BUDGET
     return jouer(seed=args.seed, n_clauses=args.clauses,
-                 manches=args.manches, budget=budget)
+                 manches=args.manches, budget=budget, roi=roi)

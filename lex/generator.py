@@ -43,7 +43,15 @@ def generer(
     n_clauses: int = 2,
     dims: Sequence[str] = DIMS_DEFAUT,
     tentatives: int = TENTATIVES,
+    poids: dict[str, float] | None = None,
 ) -> Donne:
+    """`poids` biaise le tirage des familles sans jamais rien interdire.
+
+    C'est ce qui donne un STYLE a un adversaire (voir boss.py) : un roi qui
+    « aime » le relationnel en produit souvent, pas toujours. Le biais est une
+    distribution, jamais une certitude — sinon etudier l'adversaire donnerait la
+    reponse au lieu de resserrer les hypotheses, et le §8 tomberait.
+    """
     if seed is None:
         seed = random.randrange(1, 10**9)
     dims = tuple(dims)
@@ -61,12 +69,16 @@ def generer(
     for c in cat:
         par_famille.setdefault(c.famille, []).append(c)
     familles = sorted(par_famille)
+    tirage = [max(0.0, (poids or {}).get(f, 1.0)) for f in familles]
+    if sum(tirage) <= 0:
+        tirage = [1.0] * len(familles)
 
     for taille in range(n_clauses, 0, -1):
         for _ in range(tentatives):
             clauses: tuple = ()
             while len(clauses) < taille:
-                c = rng.choice(par_famille[rng.choice(familles)])
+                famille = rng.choices(familles, weights=tirage)[0]
+                c = rng.choice(par_famille[famille])
                 if c not in clauses:
                     clauses += (c,)
             loi = Loi(clauses)

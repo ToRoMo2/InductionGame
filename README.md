@@ -59,6 +59,8 @@ python3 -m lex --seed 44          # rejouer exactement le même run
 python3 -m lex --manches 1        # une manche isolée (garde son multiplicateur)
 python3 -m lex --budget 90        # run plus serré
 python3 -m lex --clauses 1        # lois à 1 brique
+python3 -m lex --rois            # lister les adversaires
+python3 -m lex --roi archiviste  # affronter un adversaire
 ```
 
 ## Régler le générateur sans jouer
@@ -86,6 +88,7 @@ motifs de rejet : c'est l'outil pour bouger les seuils de `lex/validator.py`.
 | `validator.py` | permissivité, anti-impasse, anti-masquage, identifiabilité |
 | `game.py` | la manche (phases A/B/C), logique pure |
 | `run.py` | le run : budget partagé, score cumulé |
+| `boss.py` | les adversaires : un roi est un jeu de paramètres |
 | `cli.py` | terminal |
 
 ## La sonde — le cœur du jeu
