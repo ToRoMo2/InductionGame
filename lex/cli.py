@@ -12,6 +12,7 @@ from .cards import ATTRIBUTS, CATEGORIELS, Carte, lire_description
 from .game import ESSAIS, Partie, Phase, nouvelle_partie
 from .law import Loi
 from .probe import cout_jumelle, jumelle, tirer
+from .run import BUDGET, MANCHES, Run, nouveau_run
 
 LARGEUR = 68
 
@@ -254,9 +255,12 @@ def phase_pari(p: Partie) -> bool:
     print(f"dép.{_cellule(p.donne.demarrage)}")
     print(f"Valide : +longueur².   Fausse d'une seule carte : -longueur².")
     print()
-    print(f"MULTIPLICATEUR ×{p.multiplicateur():.2f}"
-          f"  ({p.essais_restants} essais économisés sur {p.essais})")
-    print("Il s'applique au total, gains comme pertes.")
+    if p.mult_actif:
+        print(f"MULTIPLICATEUR ×{p.multiplicateur():.2f}"
+              f"  ({p.essais_restants} essais économisés sur {p.essais})")
+        print("Il s'applique au total, gains comme pertes.")
+    else:
+        print(f"Il te restera {p.essais_restants} essais pour les manches suivantes.")
     print()
     print(f"MAIN ({len(main)} cartes, tirées du paquet) :")
     print(f"    {_entete_cols()}")
@@ -515,8 +519,9 @@ def phase_resolution(p: Partie) -> None:
         print()
         print("  (loi non déclarée)")
     print()
-    print(f"  base {r.base:+d}   ×{r.multiplicateur:.2f}"
-          f"   ({r.essais_restants} essais économisés)")
+    if abs(r.multiplicateur - 1.0) > 1e-9:
+        print(f"  base {r.base:+d}   ×{r.multiplicateur:.2f}"
+              f"   ({r.essais_restants} essais économisés)")
     print(f"  TOTAL   {r.points:+d} points")
     print()
     trait()
@@ -536,28 +541,74 @@ def phase_resolution(p: Partie) -> None:
 
 # --- entree ---------------------------------------------------------------
 
-def jouer(seed: int | None = None, n_clauses: int = 2, essais: int = ESSAIS) -> int:
+def _manche(p: Partie) -> bool:
+    """Joue une manche complete. False si le joueur abandonne."""
+    if not phase_enquete(p):
+        return False
+    if not phase_pari(p):
+        return False
+    phase_resolution(p)
+    return True
+
+
+def afficher_run(run: Run) -> None:
+    trait("=")
+    print(f"RUN {run.seed}   —   manche {run.numero}/{run.manches}")
+    trait("=")
+    print(f"score cumulé   {run.score:+d}")
+    print(f"budget restant {run.restant} essais pour {run.manches - run.numero + 1} "
+          f"manche(s)   ({run.budget} au départ, partagés)")
+    print()
+
+
+def bilan_final(run: Run) -> None:
     print()
     trait("=")
-    print("LEX — prototype console")
+    print("FIN DU RUN")
     trait("=")
-    print("Génération d'une loi déductible…", flush=True)
-    p = nouvelle_partie(seed=seed, n_clauses=n_clauses, essais=essais)
-    print("prête.")
+    print(f"  {'manche':>7} {'points':>8} {'essais':>8}   loi")
+    for b in run.historique:
+        loi = "—" if b.loi_juste is None else ("juste" if b.loi_juste else "fausse")
+        print(f"  {b.manche:>7} {b.points:>+8d} {b.depense:>8}   {loi}")
+    print()
+    print(f"  SCORE FINAL   {run.score:+d}")
+    print(f"  essais non dépensés : {run.restant}")
+    print()
 
-    if not phase_enquete(p):
-        print("\nAbandon. La loi était :")
-        for c in p.donne.loi.clauses:
-            puce(c.texte())
+
+def jouer(
+    seed: int | None = None,
+    n_clauses: int = 2,
+    manches: int = MANCHES,
+    budget: int = BUDGET,
+) -> int:
+    run = nouveau_run(seed=seed, manches=manches, budget=budget, n_clauses=n_clauses)
+    print()
+    trait("=")
+    print("LEX")
+    trait("=")
+    if manches > 1:
+        print(f"{manches} manches, {budget} essais pour TOUT le run.")
+        print("Fouiller à fond une manche, c'est se priver pour les suivantes.")
+
+    while True:
+        p = run.manche_suivante()
+        if p is None:
+            break
         print()
-        return 0
-    if not phase_pari(p):
-        print("\nAbandon. La loi était :")
-        for c in p.donne.loi.clauses:
-            puce(c.texte())
-        print()
-        return 0
-    phase_resolution(p)
+        afficher_run(run)
+        if p.essais_restants <= 0:
+            print("Plus un seul essai. Tu paries à l'aveugle.")
+        if not _manche(p):
+            print("\nAbandon. La loi était :")
+            for c in p.donne.loi.clauses:
+                puce(c.texte())
+            print()
+            return 0
+        run.cloturer(p)
+
+    if manches > 1:
+        bilan_final(run)
     return 0
 
 
@@ -565,7 +616,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="python -m lex", description="LEX, phase 0.")
     p.add_argument("--seed", type=int, default=None, help="rejouer la même manche")
     p.add_argument("--clauses", type=int, default=2, help="nombre de briques (1 ou 2)")
-    p.add_argument("--essais", type=int, default=ESSAIS, help="budget d'essais (fixe)")
+    p.add_argument("--manches", type=int, default=MANCHES,
+                   help="nombre de manches du run (1 = manche isolée)")
+    p.add_argument("--budget", type=int, default=None,
+                   help="essais partagés sur tout le run "
+                        f"(défaut {BUDGET} ; {ESSAIS} en manche isolée)")
     p.add_argument(
         "--etroit",
         action="store_true",
@@ -574,4 +629,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = p.parse_args(argv)
     global ETROIT
     ETROIT = args.etroit
-    return jouer(seed=args.seed, n_clauses=args.clauses, essais=args.essais)
+    budget = args.budget
+    if budget is None:
+        # Une manche isolee n'est pas un run d'une manche : elle garde son
+        # budget d'origine et son multiplicateur.
+        budget = ESSAIS if args.manches == 1 else BUDGET
+    return jouer(seed=args.seed, n_clauses=args.clauses,
+                 manches=args.manches, budget=budget)

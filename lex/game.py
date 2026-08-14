@@ -65,6 +65,9 @@ class Partie:
     donne: Donne
     essais: int = ESSAIS
     taille_main: int = MAIN_PARI
+    # Desactive en run : le report de budget d'une manche a l'autre recompense
+    # deja la vitesse, et cumuler les deux paierait deux fois la meme vertu.
+    mult_actif: bool = True
 
     phase: Phase = Phase.ENQUETE
     ligne: list[Carte] = field(default_factory=list)
@@ -125,7 +128,7 @@ class Partie:
         deux cotes, la vitesse cesse d'etre un bonus et devient un
         multiplicateur de risque : c'est le §9 sans la boule de neige du §4.
         """
-        if self.essais <= 0:
+        if not self.mult_actif or self.essais <= 0:
             return 1.0
         return 1.0 + self.essais_restants / self.essais
 

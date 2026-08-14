@@ -3,9 +3,32 @@
 Prototype console du jeu d'induction **LEX**. Voir
 `cahier-des-charges-jeu-induction.md` pour la spec complète.
 
-Périmètre actuel : phase 0 livrée (§13), **étape 2 en cours** (§14) — la
-grammaire s'élargit. Une manche isolée, terminal, texte brut, stdlib seule.
-Pas de run, pas d'objets, pas de méta-progression, pas d'escalade.
+Périmètre actuel : phases 0 et étape 2 livrées, **étape 3 en cours** (§14) — la
+couche run. Terminal, texte brut, stdlib seule. Pas encore d'objets, pas de
+méta-progression, pas de condition de défaite.
+
+## Le run
+
+Six manches reliées par **un seul budget d'essais** (120 pour tout le run, pas
+30 par manche). Fouiller à fond la première manche, c'est se priver pour la
+cinquième : chaque sonde chère arbitre entre maintenant et plus tard.
+
+C'est délibérément étranger à Balatro. La structure évidente — un score cible
+qui monte à chaque manche — est sa structure d'antes, et le §11 prévient
+qu'importer une solution conçue pour un jeu d'optimisation à information connue
+abîme la boucle d'induction sans qu'on le voie. Ici la ressource partagée est
+**l'enquête elle-même**.
+
+Deux conséquences qu'on n'a pas eu à écrire :
+
+- **le multiplicateur d'essais économisés disparaît en run.** Il récompensait
+  déjà la vitesse ; le report de budget la récompense aussi. Les garder tous les
+  deux paierait deux fois la même vertu et rendrait l'enquête trop chère. Le §9
+  tient toujours, en différé : comprendre vite, c'est avoir de quoi comprendre
+  encore ensuite. En manche isolée, où il n'y a pas de suite, le multiplicateur
+  reste ;
+- **à la dernière manche, économiser ne sert plus à rien**, donc le run finit en
+  tout-ou-rien sans qu'aucune règle ne le stipule.
 
 ## La grammaire
 
@@ -31,10 +54,11 @@ l'aurait laissée étouffer les trois autres.
 ## Jouer
 
 ```
-python3 -m lex                    # une manche, loi à 2 briques
-python3 -m lex --seed 44          # rejouer exactement la même manche
-python3 -m lex --clauses 1        # loi à 1 brique
-python3 -m lex --essais 30        # budget d'essais (fixe)
+python3 -m lex                    # un run : 6 manches, 120 essais partagés
+python3 -m lex --seed 44          # rejouer exactement le même run
+python3 -m lex --manches 1        # une manche isolée (garde son multiplicateur)
+python3 -m lex --budget 90        # run plus serré
+python3 -m lex --clauses 1        # lois à 1 brique
 ```
 
 ## Régler le générateur sans jouer
@@ -61,6 +85,7 @@ motifs de rejet : c'est l'outil pour bouger les seuils de `lex/validator.py`.
 | `generator.py` | propose-and-test ; rend la loi **et** le pool validé avec elle |
 | `validator.py` | permissivité, anti-impasse, anti-masquage, identifiabilité |
 | `game.py` | la manche (phases A/B/C), logique pure |
+| `run.py` | le run : budget partagé, score cumulé |
 | `cli.py` | terminal |
 
 ## La sonde — le cœur du jeu

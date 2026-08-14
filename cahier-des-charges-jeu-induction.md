@@ -244,9 +244,18 @@ Un objet qui révèle une clause détruit la boucle. Le meilleur objet du jeu es
 - consulter une carte retirée de la pioche
 - pénalité d'échec réduite (permet de tenter des suites plus ambitieuses)
 
+### Structure du run — **tranchée : le budget d'essais est partagé**
+
+Six manches, **un seul budget** pour tout le run (120 essais, pas 30 par manche). Fouiller à fond la première laisse à sec la cinquième.
+
+> **Pourquoi pas un score cible croissant.** C'est la structure d'antes de Balatro, et le §11 prévient exactement contre ça : importer une solution conçue pour un jeu d'optimisation à information connue abîme la boucle d'induction de façon invisible. Ici la ressource partagée est **l'enquête elle-même** — la rareté de l'information crée le sens (§3, pilier 1).
+
+> **Deux conséquences non écrites, qui tombent toutes seules.** Le multiplicateur d'essais économisés **disparaît** en run : il récompensait déjà la vitesse, le report de budget la récompense aussi, et cumuler paierait deux fois la même vertu en rendant l'enquête trop chère. Le §9 tient en différé — comprendre vite, c'est avoir de quoi comprendre encore. Et à la dernière manche, économiser ne sert plus à rien : le run finit en tout-ou-rien sans qu'aucune règle ne le stipule.
+
 ### À définir
 
-- Structure du run : nombre de manches, condition de défaite, escalade.
+- Condition de défaite (§16.3) : aucune pour l'instant, le run va au bout de ses six manches.
+- Escalade : le budget qui s'épuise en tient lieu ; reste à voir si ça suffit.
 - Économie inter-manches — **sans copier la boutique de Balatro**.
 - Méta-progression entre runs (déblocage de dimensions ? de briques ?).
 
