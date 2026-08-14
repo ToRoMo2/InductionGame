@@ -130,7 +130,8 @@ rien.
 Deux paris indépendants, de même mise `longueur²` :
 
 1. **la suite** — elle **prolonge la carte de départ**, qui juge sa première
-   carte ; valide, tu encaisses ; une seule carte fausse, la valeur se retourne
+   carte. La main est retirée jusqu'à permettre une suite d'au moins 3 cartes,
+   et **se coucher est légal** (0 point, aucun risque) ; valide, tu encaisses ; une seule carte fausse, la valeur se retourne
    contre toi. Évaluée sur une ligne neuve, la première carte n'aurait aucune
    carte précédente : sur les 17 % de lois sans clause absolue, n'importe
    quelle carte serait passée et un joueur n'ayant rien compris aurait encaissé

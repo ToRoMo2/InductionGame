@@ -50,6 +50,38 @@ class Loi:
             ligne.append(carte)
         return -1
 
+    def plus_longue_suite(
+        self,
+        cartes: Sequence[Carte],
+        prefixe: Sequence[Carte] = (),
+        plafond: int = 8,
+    ) -> int:
+        """Longueur de la meilleure suite qu'on puisse tirer de `cartes`.
+
+        Sert a garantir qu'une main de pari est jouable. Mesure avant
+        correction : 2 % des mains tirees au hasard n'autorisaient AUCUNE carte,
+        et 6 % plafonnaient a une seule. Le joueur pouvait donc avoir compris la
+        loi parfaitement et etre force de perdre — le §3 pilier 3 viole par le
+        tirage, pas par la regle.
+
+        DFS avec plafond : les lois etant restrictives, l'arbre s'effondre vite
+        et le plafond ne mord qu'en pratique sur les mains tres permissives, ou
+        savoir « au moins 8 » suffit.
+        """
+        meilleur = 0
+
+        def explorer(ligne: list[Carte], restantes: list[Carte], prof: int) -> None:
+            nonlocal meilleur
+            meilleur = max(meilleur, prof)
+            if prof >= plafond:
+                return
+            for i, c in enumerate(restantes):
+                if self.accepte(ligne, c):
+                    explorer(ligne + [c], restantes[:i] + restantes[i + 1:], prof + 1)
+
+        explorer(list(prefixe), list(cartes), 0)
+        return meilleur
+
     def texte(self) -> str:
         if len(self.clauses) == 1:
             return self.clauses[0].texte()

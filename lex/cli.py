@@ -268,6 +268,7 @@ def phase_pari(p: Partie) -> bool:
     for i, c in enumerate(main, 1):
         print(f"{i:2}. {_cellule(c)}")
     print()
+    print(f"Cette main permet une suite d'au moins {p.max_suite} cartes.")
     print("Ajoute les cartes par leur NUMÉRO — le paquet contient plusieurs")
     print("cartes de même rang et enseigne, seuls le dos et le pli changent.")
     print("« retirer » annule la dernière, « valider » résout, « main » réaffiche.")
@@ -299,10 +300,11 @@ def phase_pari(p: Partie) -> bool:
                 print(f"{i:2}. {_cellule(c)}{etat}")
             continue
         if saisie in ("valider", "ok"):
-            if not suite:
-                print("  ? une suite vide ne rapporte rien. Ajoute au moins une carte.")
+            if not suite and demander(
+                "  Te coucher ? 0 point, aucun risque. (o/n) > "
+            ).lower() not in ("o", "oui", "y", "yes"):
                 continue
-            p.resoudre(suite, declarer_loi(p.donne.dims))
+            p.resoudre(suite, declarer_loi(p.donne.dims) if suite else None)
             return True
 
         if not saisie.isdigit() or not 1 <= int(saisie) <= len(main):
@@ -493,7 +495,9 @@ def phase_resolution(p: Partie) -> None:
     print("PHASE C — RÉSOLUTION")
     trait("=")
     print()
-    if r.valide:
+    if r.longueur == 0:
+        print("  COUCHÉ — aucune mise.                        +0")
+    elif r.valide:
         print(f"  SUITE VALIDE — {r.longueur} cartes.        {r.points_suite:+d}")
     else:
         print(f"  SUITE INVALIDE — casse en position {r.index_faute}.  {r.points_suite:+d}")
@@ -519,6 +523,10 @@ def phase_resolution(p: Partie) -> None:
     else:
         print()
         print("  (loi non déclarée)")
+    if p.max_suite:
+        # Sans ce reperage, le joueur ne sait pas si son pari etait timide ou
+        # si la main etait simplement pauvre.
+        print(f"  meilleure suite possible dans cette main : {p.max_suite} cartes")
     print()
     if abs(r.multiplicateur - 1.0) > 1e-9:
         print(f"  base {r.base:+d}   ×{r.multiplicateur:.2f}"

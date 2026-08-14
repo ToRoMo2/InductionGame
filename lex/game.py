@@ -31,6 +31,13 @@ from .validator import contre_exemple, equivalentes
 ESSAIS = 30
 MAIN_PARI = 12
 
+# La main du pari doit permettre au moins une suite de cette longueur. Sans ce
+# controle, 2 % des mains n'autorisaient aucune carte et 6 % une seule : le
+# joueur pouvait avoir compris la loi et etre force de perdre. Trois cartes,
+# c'est la garantie qu'un pari vaut la peine d'etre pose — la comprehension
+# doit pouvoir se convertir en points, sinon l'enquete ne sert a rien.
+SUITE_MIN = 3
+
 
 class Phase(Enum):
     ENQUETE = "enquete"
@@ -85,6 +92,7 @@ class Partie:
     essais_restants: int = 0
     sondes: int = 0
     main: tuple[Carte, ...] = ()
+    max_suite: int = 0
     resolution: Resolution | None = None
 
     def __post_init__(self) -> None:
@@ -133,10 +141,21 @@ class Partie:
         return 1.0 + self.essais_restants / self.essais
 
     def passer_au_pari(self, rng: random.Random | None = None) -> tuple[Carte, ...]:
+        """La main est retiree jusqu'a permettre une suite d'au moins SUITE_MIN.
+
+        Le tirage fait partie de ce qui doit etre juste : une main ou rien n'est
+        jouable transforme une loi comprise en defaite obligatoire.
+        """
         if self.phase is not Phase.ENQUETE:
             raise RuntimeError("le pari a deja commence")
         rng = rng or random.Random(self.donne.seed ^ 0xBE7)
-        self.main = tuple(sorted(rng.sample(self.donne.pool, self.taille_main)))
+        depart = (self.donne.demarrage,)
+        for _ in range(200):
+            main = tuple(sorted(rng.sample(self.donne.pool, self.taille_main)))
+            self.max_suite = self.donne.loi.plus_longue_suite(main, depart)
+            if self.max_suite >= SUITE_MIN:
+                break
+        self.main = main
         self.phase = Phase.PARI
         return self.main
 
@@ -158,7 +177,10 @@ class Partie:
         # La suite prolonge la carte de depart : elle n'est pas une ligne neuve.
         i = self.donne.loi.valide_suite(suite, (self.donne.demarrage,))
         n = len(suite)
-        res = Resolution(i < 0, n, n * n if i < 0 else -(n * n), i)
+        # Se coucher est permis et vaut zero. Obliger a miser transforme un
+        # doute lucide en perte forcee ; le §4B demande la suite « la plus
+        # rentable possible », et parfois c'est l'absence de suite.
+        res = Resolution(n == 0 or i < 0, n, n * n if i < 0 else -(n * n), i)
         res.essais_restants = self.essais_restants
         res.multiplicateur = self.multiplicateur()
 

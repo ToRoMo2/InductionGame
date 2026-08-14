@@ -83,6 +83,15 @@ Prix = 1 essai, +1 par attribut imposé.
 ### Phase B — Le pari
 
 - Le joueur accède à une main **bornée** : 12 cartes tirées du paquet. Jamais l'accès total, sinon le problème devient un exercice de tableur.
+- **La main est retirée jusqu'à permettre une suite d'au moins trois cartes**, et **se coucher est permis** : une suite vide vaut zéro, sans risque.
+
+> **Tranché en jouant — le tirage fait partie de ce qui doit être juste.** Un joueur avait parfaitement compris « le pli diffère du précédent ET la couleur diffère du précédent », départ noir et plié. Dans sa main de douze, toutes les rouges étaient pliées et toutes les lisses étaient noires : **aucune carte jouable**, et le jeu l'obligeait à en poser une. Il perdait pour avoir compris.
+>
+> Mesuré : **2 % des mains n'autorisaient aucune carte, 6 % une seule.** Sur un run de six manches, une manche morte toutes les huit parties environ. Le §3 pilier 3 était violé non par la règle mais par le tirage — et c'est un endroit qu'on n'avait jamais pensé à contrôler.
+>
+> Deux corrections indépendantes. La main est **retirée** tant qu'elle ne permet pas trois cartes : la compréhension doit pouvoir se convertir en points, sinon l'enquête ne sert à rien. Et **se coucher devient légal** : obliger à miser transforme un doute lucide en perte forcée, alors que le §4B demande « la suite la plus rentable possible » — parfois c'est l'absence de suite.
+>
+> La révélation indique enfin la **meilleure suite que la main permettait**. Sans ce repère, le joueur ne sait pas si son pari était timide ou si la main était pauvre.
 - Il construit la **suite la plus rentable possible**, sans se tromper. Elle **prolonge la carte de départ**, qui juge sa première carte.
 - Puis, **facultativement, il énonce la loi**. Second pari de même mise : juste, il double ; faux, il perd autant ; refuser ne coûte rien.
 
