@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import random
+import textwrap
 from typing import Sequence
 
 from .bricks import AVANCES, Clause
@@ -20,7 +21,11 @@ ETROIT = False
 
 
 def trait(c: str = "-") -> None:
-    largeur = 34 if ETROIT else (LARGEUR if c != "─" else 2 * LARGEUR_COLS + 7)
+    if c == "─":
+        largeur = (sum(l for _, l, _ in _cols()) + 4 if ETROIT
+                   else 2 * LARGEUR_COLS + 7)
+    else:
+        largeur = 34 if ETROIT else LARGEUR
     print(c * largeur)
 
 
@@ -33,18 +38,35 @@ COLONNES = (
     ("dos", 7, lambda c: c.dos),
     ("pli", 6, lambda c: c.pli),
 )
+# Sur telephone, 80 colonnes se replient et detruisent l'alignement — qui est
+# tout l'interet. En mode etroit on garde la meme idee (les refus decales pour
+# que la colonne de gauche se lise d'une traite) mais sur une seule colonne,
+# avec des largeurs resserrees : 30 caracteres au lieu de 80.
+COLONNES_ETROITES = (
+    ("rg", 3, lambda c: c.nom_court[:-1]),
+    ("parité", 7, lambda c: c.parite),
+    ("e", 2, lambda c: c.enseigne),
+    ("coul", 6, lambda c: c.couleur),
+    ("dos", 7, lambda c: c.dos),
+    ("pli", 5, lambda c: c.pli),
+)
 LARGEUR_COLS = sum(l for _, l, _ in COLONNES)
 SEP = " │ "
 
 
+def _cols():
+    return COLONNES_ETROITES if ETROIT else COLONNES
+
+
 def _cellule(carte: Carte | None) -> str:
+    cols = _cols()
     if carte is None:
-        return " " * LARGEUR_COLS
-    return "".join(f"{f(carte):<{l}}" for _, l, f in COLONNES)
+        return " " * sum(l for _, l, _ in cols)
+    return "".join(f"{f(carte):<{l}}" for _, l, f in cols)
 
 
 def _entete_cols() -> str:
-    return "".join(f"{nom:<{l}}" for nom, l, _ in COLONNES)
+    return "".join(f"{nom:<{l}}" for nom, l, _ in _cols())
 
 
 def afficher_ligne(p: Partie) -> None:
@@ -60,13 +82,20 @@ def afficher_ligne(p: Partie) -> None:
     inutiles — la mise en page dit la meme chose sans un mot.
     """
     print()
-    gauche = f"{'LIGNE PRINCIPALE':<{LARGEUR_COLS + 4}}"
-    print(f"{gauche}{SEP}REFUSÉES")
-    print(f"    {_entete_cols()}{SEP}{_entete_cols()}")
+    if ETROIT:
+        print("LIGNE  (les refus sont décalés)")
+        print(f"    {_entete_cols()}")
+    else:
+        gauche = f"{'LIGNE PRINCIPALE':<{LARGEUR_COLS + 4}}"
+        print(f"{gauche}{SEP}REFUSÉES")
+        print(f"    {_entete_cols()}{SEP}{_entete_cols()}")
     trait("─")
 
     def rangee(pos: int | None, carte: Carte, accepte: bool, suffixe: str = "") -> None:
-        if accepte:
+        if ETROIT:
+            print(f"{pos:>2}. {_cellule(carte)}" if accepte
+                  else f"  x    {_cellule(carte)}")
+        elif accepte:
             print(f"{pos:>2}. {_cellule(carte)}{SEP}")
         else:
             print(f"    {_cellule(None)}{SEP}{_cellule(carte)}{suffixe}")
@@ -105,6 +134,17 @@ def afficher_aide(dims: Sequence[str]) -> None:
     print()
     print("Commandes :  ligne | aide | pari | abandon")
     print()
+
+
+def puce(texte: str, marge: str = "  · ") -> None:
+    """Un texte de clause, replie proprement. Certaines montent a 96 caracteres
+    (« le rang avance de 1 a 8 rangs... ») : sur telephone elles se replient
+    n'importe ou, et c'est au moment de la revelation que la lisibilite compte
+    le plus."""
+    largeur = 38 if ETROIT else LARGEUR
+    suite = " " * len(marge)
+    for i, bout in enumerate(textwrap.wrap(texte, largeur - len(marge)) or [""]):
+        print((marge if i == 0 else suite) + bout)
 
 
 def demander(invite: str) -> str:
@@ -427,7 +467,7 @@ def declarer_loi(dims: Sequence[str]) -> Loi | None:
             print("  déclaration abandonnée.")
             return None
         clauses.append(c)
-        print(f"    → {c.texte()}")
+        puce(c.texte(), "    → ")
         if demander("  Ajouter une autre clause ? (o/n) > ").lower() not in (
             "o", "oui", "y", "yes"
         ):
@@ -438,7 +478,7 @@ def declarer_loi(dims: Sequence[str]) -> Loi | None:
     print()
     print("  Tu déclares :")
     for c in loi.clauses:
-        print(f"    · {c.texte()}")
+        puce(c.texte(), "    · ")
     return loi
 
 
@@ -461,7 +501,7 @@ def phase_resolution(p: Partie) -> None:
         print()
         print("  Tu avais déclaré :")
         for c in r.loi_declaree.clauses:
-            print(f"    · {c.texte()}")
+            puce(c.texte(), "    · ")
         if r.loi_juste:
             print(f"  LOI JUSTE — rien ne pouvait la distinguer.  {r.points_loi:+d}")
         else:
@@ -477,7 +517,7 @@ def phase_resolution(p: Partie) -> None:
     trait()
     print("LA LOI ÉTAIT :")
     for c in p.donne.loi.clauses:
-        print(f"  · {c.texte()}")
+        puce(c.texte())
     trait()
     print()
     rap = p.donne.rapport
@@ -503,13 +543,13 @@ def jouer(seed: int | None = None, n_clauses: int = 2, essais: int = ESSAIS) -> 
     if not phase_enquete(p):
         print("\nAbandon. La loi était :")
         for c in p.donne.loi.clauses:
-            print(f"  · {c.texte()}")
+            puce(c.texte())
         print()
         return 0
     if not phase_pari(p):
         print("\nAbandon. La loi était :")
         for c in p.donne.loi.clauses:
-            print(f"  · {c.texte()}")
+            puce(c.texte())
         print()
         return 0
     phase_resolution(p)
