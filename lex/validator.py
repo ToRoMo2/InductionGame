@@ -40,7 +40,7 @@ from dataclasses import dataclass, field
 from typing import Sequence
 
 from .bricks import Clause, catalogue
-from .cards import Carte
+from .cards import ATTRIBUTS, BASE, Carte
 from .law import Loi
 
 # --- seuils de calibrage (les boutons a tourner apres chaque partie) -------
@@ -314,6 +314,84 @@ def equivalentes(
     for c in b.clauses:
         mb &= masque_clause(c, ctxs, pool)
     return ma == mb
+
+
+def contre_exemple(
+    vraie: Loi,
+    declaree: Loi,
+    pool: Sequence[Carte],
+    ligne: Sequence[Carte],
+    rng: random.Random,
+    depart: Carte,
+) -> tuple[tuple[Carte, ...], Carte, bool] | None:
+    """Un cas concret ou les deux lois divergent : (contexte, carte, verdict vrai).
+
+    Dire « FAUSSE » sans montrer ou, c'est laisser le joueur repartir convaincu
+    que sa loi disait la meme chose. Le §4C promet qu'il apprend toujours
+    quelque chose ; la revelation seule ne tient la promesse qu'a moitie.
+
+    On cherche d'abord dans les prefixes de SA ligne : un contre-exemple pris
+    dans sa propre partie se relie a ce qu'il a vu, la ou un contexte
+    quelconque resterait abstrait.
+
+    On choisit ensuite, parmi toutes les divergences, celle dont la carte
+    ressemble le plus a une JUMELLE de la carte precedente : le moins
+    d'attributs differents possible. Un contre-exemple qui differe sur quatre
+    attributs ne prouve rien de lisible ; un qui n'en change qu'un designe la
+    dimension du malentendu.
+    """
+    candidats: list[tuple[Carte, ...]] = [
+        tuple(ligne[: i + 1]) for i in range(len(ligne))
+    ]
+    candidats += list(contextes(vraie, pool, rng, depart))
+
+    meilleur = None
+    ecart_min = len(BASE) + 1
+    for ctx in candidats:
+        prec = ctx[-1]
+        for carte in pool:
+            v = vraie.accepte(ctx, carte)
+            if v == declaree.accepte(ctx, carte):
+                continue
+            ecart = sum(
+                1 for a in BASE if ATTRIBUTS[a].get(carte) != ATTRIBUTS[a].get(prec)
+            )
+            if ecart < ecart_min:
+                ecart_min, meilleur = ecart, (ctx, carte, v)
+                if ecart == 1:
+                    return meilleur
+    return meilleur
+
+
+def simplifier(
+    loi: Loi,
+    pool: Sequence[Carte],
+    dims: Sequence[str],
+    rng: random.Random,
+    depart: Carte,
+) -> Loi:
+    """Reecrit chaque clause dans sa formulation la plus courte a comportement
+    identique.
+
+    Mesure : 190 clauses du catalogue ne produisent que 156 comportements — 54
+    ont un jumeau exact, parfois dans une autre famille (« jamais deux rouge
+    d'affilee » est la meme chose que « si la precedente est rouge, alors la
+    couleur est noir »). Reveler la formulation alambiquee quand une formulation
+    simple dit exactement pareil est une frustration gratuite.
+    """
+    ctxs = contextes(loi, pool, rng, depart)
+    if not ctxs:
+        return loi
+    cat = catalogue(dims)
+    par_masque: dict[int, Clause] = {}
+    for c in cat:
+        m = masque_clause(c, ctxs, pool)
+        actuel = par_masque.get(m)
+        if actuel is None or len(c.texte()) < len(actuel.texte()):
+            par_masque[m] = c
+    return Loi(tuple(
+        par_masque.get(masque_clause(c, ctxs, pool), c) for c in loi.clauses
+    ))
 
 
 def _retenir(classes: dict[int, Loi], m: int, candidate: Loi) -> None:

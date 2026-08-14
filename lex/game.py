@@ -24,7 +24,7 @@ from .cards import Carte
 from .generator import Donne, generer
 from .law import Loi
 from .probe import Sonde
-from .validator import equivalentes
+from .validator import contre_exemple, equivalentes
 
 # Plancher mesure : un solveur parfait depense ~15 essais. On garde environ
 # le double pour l'inefficacite humaine, comme avant le changement de sonde.
@@ -49,6 +49,7 @@ class Resolution:
     points_loi: int = 0
     essais_restants: int = 0
     multiplicateur: float = 1.0
+    divergence: tuple | None = None  # (contexte, carte, verdict vrai)
 
     @property
     def base(self) -> int:
@@ -168,6 +169,11 @@ class Partie:
                 self.donne.demarrage,
             )
             res.points_loi = n * n if res.loi_juste else -(n * n)
+            if not res.loi_juste:
+                res.divergence = contre_exemple(
+                    self.donne.loi, loi_declaree, self.donne.pool, self.ligne,
+                    random.Random(self.donne.seed ^ 0x102), self.donne.demarrage,
+                )
 
         self.resolution = res
         self.phase = Phase.FINI

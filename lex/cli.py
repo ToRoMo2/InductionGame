@@ -506,6 +506,15 @@ def phase_resolution(p: Partie) -> None:
             print(f"  LOI JUSTE — rien ne pouvait la distinguer.  {r.points_loi:+d}")
         else:
             print(f"  LOI FAUSSE.                                 {r.points_loi:+d}")
+            if r.divergence:
+                ctx, carte, vrai = r.divergence
+                print()
+                print("  Vos deux lois divergent ici :")
+                print(f"      {_entete_cols()}")
+                print(f"  ap. {_cellule(ctx[-1])}")
+                print(f"  →   {_cellule(carte)}")
+                print(f"      la vraie loi {'ACCEPTE' if vrai else 'REFUSE'} "
+                      f"cette carte, la tienne {'refuse' if vrai else 'accepte'}.")
     else:
         print()
         print("  (loi non déclarée)")

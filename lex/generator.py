@@ -20,7 +20,7 @@ from typing import Sequence
 from .bricks import catalogue
 from .cards import DIMS_DEFAUT, Carte, construire_pool
 from .law import Loi
-from .validator import Rapport, analyser
+from .validator import Rapport, analyser, simplifier
 
 TENTATIVES = 400
 DEPARTS_ESSAYES = 6  # departs distincts testes par loi candidate
@@ -103,7 +103,13 @@ def generer(
                 if not rap.ok:
                     continue
 
-                return Donne(rap.representant or loi, pool, depart, rap, seed, dims)
+                # Reveler la formulation la plus courte a comportement egal :
+                # 54 clauses du catalogue ont un jumeau exact, parfois dans une
+                # autre famille.
+                finale = simplifier(
+                    rap.representant or loi, pool, dims, rng, depart
+                )
+                return Donne(finale, pool, depart, rap, seed, dims)
 
     raise RuntimeError(
         f"aucune loi valide trouvee en {tentatives} tentatives (graine {seed})"

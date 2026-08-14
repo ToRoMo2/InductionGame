@@ -119,7 +119,22 @@ fait zéro. Appliqué aussi aux pertes, il fait de la vitesse un multiplicateur 
 risque plutôt qu'un bonus — le §9 sans la boule de neige du §4.
 
 La déclaration est jugée sur le **comportement**, jamais sur les mots : une
-formulation que rien d'observable ne distingue de la vraie loi compte juste.
+formulation que rien d'observable ne distingue de la vraie loi compte juste,
+**y compris dans une autre famille**. « le dos diffère du précédent » est
+reconnu identique à « jamais deux ivoire d'affilée ET jamais deux jaune
+d'affilée ». C'est nécessaire : 190 clauses du catalogue ne produisent que
+156 comportements distincts, et 54 clauses ont un jumeau exact.
+
+Quand la déclaration est fausse, le jeu **montre où**. Il cherche un cas où les
+deux lois divergent, en privilégiant celui dont la carte est la plus proche
+d'une jumelle de la précédente : un contre-exemple qui change quatre attributs
+ne prouve rien de lisible, un qui n'en change qu'un désigne la dimension du
+malentendu. Sans ça, le joueur repart convaincu que sa loi disait la même
+chose — et le §4C, qui promet qu'il apprend toujours quelque chose, n'est tenu
+qu'à moitié.
+
+La loi révélée est réécrite dans sa **formulation la plus courte** à
+comportement égal.
 
 Le constructeur n'apparaît qu'en phase B, une fois l'enquête close — disponible
 plus tôt, il permettrait l'élimination mécanique que le §6 interdit.
