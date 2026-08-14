@@ -185,7 +185,7 @@ def catalogue(dims: Sequence[str]) -> tuple[Clause, ...]:
     # est exactement sa place — le §5 la classe en difficulte elevee.
     #
     # C'est le levier de variete, et la raison est mesuree : la grammaire a
-    # trois familles ne comptait que 22 FORMES de regle pour 1653 lois, et un
+    # trois familles ne comptait que 23 FORMES de regle pour 1540 lois, et un
     # attribut de plus n'en ajoute que 4. Une famille, elle, multiplie.
     paires = [
         (nom, v)
