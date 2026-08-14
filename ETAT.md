@@ -21,10 +21,19 @@ Feuille de route du §14, dans l'ordre strict :
 | 3 | Couche run : objets, escalade, défaite | **en cours** — colonne vertébrale faite, reste objets et défaite |
 | 4 | Interface graphique + DA médiévale | pas commencée, et ne doit pas l'être |
 
-**Test externe (§13)** : un joueur non codeur, sans explication, a trouvé sa
-première loi et aimé ça. Réserve : « sans plus », attribué au tout-texte. Un
-affichage en colonnes a été livré depuis, **non retesté avec lui**.
-**Donnée manquante et décisive : a-t-il redemandé à jouer ?**
+**Test externe (§13) — concluant.**
+
+- 1re session : joueur non codeur, sans explication, trouve sa première loi et
+  aime ça. Réserve : « sans plus », attribué au tout-texte.
+- Correctif : affichage en colonnes (ligne principale à gauche, refus à droite).
+- 2e session : **il confirme que c'est beaucoup plus lisible**, et surtout —
+  **il a réinstallé le jeu sur son propre PC et l'a relancé de lui-même, en
+  stream.**
+
+Le §13 dit que le seul indicateur qui compte est comportemental, jamais
+déclaratif. Il n'a pas *demandé* à rejouer : il est allé le chercher et l'a
+joué en public, sur son matériel. C'est plus fort qu'une demande, et c'est le
+signal que le §13 appelle décisif. **Il est positif.**
 
 ---
 
@@ -230,9 +239,9 @@ Pistes notées pour §16.7, non tranchées :
 2. **Le budget de 120 est-il le bon ?** Le bon réglage est celui où on lâche
    une ou deux manches **en le décidant**, pas en le subissant. Trop de budget
    restant à la fin → trop large ; à sec à la manche 4 → trop serré.
-3. **Retester l'affichage en colonnes** avec le testeur externe. Compare-t-il
-   spontanément deux lignes du tableau ?
-4. **A-t-il redemandé à jouer ?** Le seul indicateur que le §13 juge décisif.
+3. ~~Retester l'affichage en colonnes~~ — **fait, concluant.**
+4. ~~A-t-il redemandé à jouer ?~~ — **fait : il a relancé de lui-même, en
+   stream, sur son PC.** Signal décisif du §13, positif.
 5. **À partir de quelle manche la reconnaissance remplace la découverte ?**
    Réponse partielle de l'auteur : pas encore arrivé, en connaissant pourtant
    toute la grammaire.
