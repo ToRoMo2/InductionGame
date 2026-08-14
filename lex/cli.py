@@ -315,12 +315,32 @@ def construire_clause(dims: Sequence[str]) -> Clause | None:
     cats = [(d, ATTRIBUTS[d].libelle) for d in CATEGORIELS if d in dims]
 
     famille = _choisir("famille", [
-        ("absolue", "absolue    — porte sur la carte posée, seule"),
-        ("relation", "relation   — compare à la carte précédente"),
-        ("sequence", "séquence   — interdit une répétition sur la ligne"),
+        ("absolue", "absolue        — porte sur la carte posée, seule"),
+        ("relation", "relation       — compare à la carte précédente"),
+        ("sequence", "séquence       — interdit une répétition sur la ligne"),
+        ("conditionnelle", "conditionnelle — si la précédente est…, alors…"),
     ])
     if famille is None:
         return None
+
+    if famille == "conditionnelle":
+        a_si = _choisir("SI la précédente a…", cats)
+        if a_si is None:
+            return None
+        v_si = _choisir(
+            "…la valeur", [(str(v), str(v)) for v in ATTRIBUTS[a_si].domaine]
+        )
+        if v_si is None:
+            return None
+        a_alors = _choisir("ALORS la carte posée a…", cats)
+        if a_alors is None:
+            return None
+        v_alors = _choisir(
+            "…la valeur", [(str(v), str(v)) for v in ATTRIBUTS[a_alors].domaine]
+        )
+        if v_alors is None:
+            return None
+        return Clause("conditionnelle", (a_si, v_si, a_alors, v_alors))
 
     if famille == "absolue":
         nom = _choisir("attribut", cats)

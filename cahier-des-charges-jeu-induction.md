@@ -137,7 +137,11 @@ La distinction qui compte n'est pas classique / caché, c'est **indépendant / d
 - **Séquentielle** : « pas deux nombres impairs d'affilée »
 - **Conditionnelle** (difficulté élevée) : « si la précédente est rouge, alors… »
 
-Une loi = 1 à 3 briques combinées.
+Une loi = 1 à 3 briques combinées. **Les quatre familles sont implémentées.**
+
+> **Mesuré à l'étape 2.** La conditionnelle a fait passer la grammaire de **22 à 47 formes** de règle, alors que le plancher du solveur parfait n'est monté que de 18 à 19 essais : plus de variété sans plus de difficulté. C'est la démonstration qu'élargir par **famille** est le bon levier, et par attribut le mauvais.
+>
+> **Piège découvert en l'ajoutant.** La conditionnelle représente à elle seule 70 % du catalogue de clauses. Un tirage uniforme sur les clauses donnait 50 % de lois conditionnelles et une séquentielle sur vingt-quatre : la nouvelle famille étouffait les anciennes. Le tirage est donc **équiprobable par famille**, jamais par clause — le joueur vit des familles, pas des instances.
 
 ### Contraintes impératives du générateur
 
@@ -371,7 +375,7 @@ Mettre un ami devant, sans explication, et chronométrer. Observer où il coince
 |---|---|---|---|
 | **0** | Jouer à Eleusis Express sur table | Test de sensation, 2 h | — |
 | **1** | Générateur console, 3 briques | La boucle est grisante en texte brut | **franchie** (auteur) ; **test externe en attente** |
-| **2** | Élargissement de la grammaire — **par famille, pas par attribut** | La reconnaissance ne remplace pas la découverte avant la manche N | à venir |
+| **2** | Élargissement de la grammaire — **par famille, pas par attribut** | La reconnaissance ne remplace pas la découverte avant la manche N | **famille conditionnelle livrée** ; condition à mesurer en jouant |
 | **3** | Couche run : objets, escalade, défaite | Un run donne envie d'en relancer un | à venir |
 | **4** | Interface graphique + DA médiévale | Tout le reste est validé | à venir |
 

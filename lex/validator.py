@@ -163,6 +163,7 @@ def analyser(
     rng: random.Random,
     depart: Carte,
     complet: bool = True,
+    exhaustif: bool = False,
 ) -> Rapport:
     """Verdict sur un couple (loi, carte de depart). Les deux sont indissociables :
     une meme loi peut etre parfaitement deductible depuis un depart et
@@ -241,7 +242,19 @@ def analyser(
     classes: dict[int, Loi] = {}
     for i, ci in enumerate(cat):
         _retenir(classes, m_cat[i], Loi((ci,)))
-    if len(loi.clauses) >= 2:
+    # L'enumeration des paires est reservee a l'analyse hors ligne. Elle coute
+    # C(n,2) — 17 955 lois depuis l'ajout de la conditionnelle — et n'achete
+    # que le compte de rivales fragiles, qui n'a jamais tire une seule fois sur
+    # plusieurs centaines de lois mesurees : la grille contextes x paquet est
+    # trop dense pour que deux comportements distincts se frolent.
+    #
+    # Ce qui compte vraiment survit : le controle de redondance compare la loi
+    # aux clauses SEULES, et c'est lui qui tire. On perd seulement la
+    # possibilite de trouver une reformulation a deux clauses plus jolie —
+    # cosmetique, et sans effet sur l'equite : deux lois de meme masque sont
+    # indistinguables, donc `equivalentes` juge deja juste le joueur qui
+    # declare l'une pour l'autre.
+    if exhaustif and len(loi.clauses) >= 2:
         for i in range(len(cat)):
             for j in range(i + 1, len(cat)):
                 _retenir(classes, m_cat[i] & m_cat[j], Loi((cat[i], cat[j])))
@@ -341,7 +354,12 @@ def _main(argv: Sequence[str] | None = None) -> int:
         return _balayage(args)
 
     donne = generer(seed=args.seed, n_clauses=args.clauses)
-    rap = donne.rapport
+    # Le rapport affiche par la CLI est exhaustif : c'est l'outil d'analyse,
+    # il peut se payer l'enumeration complete que le jeu ne se paie pas.
+    rap = analyser(
+        donne.loi, donne.pool, donne.dims,
+        random.Random(donne.seed ^ 0x5EED), donne.demarrage, exhaustif=True,
+    )
     print(f"graine        : {donne.seed}")
     print(f"départ        : {donne.demarrage}")
     print(f"dimensions    : {', '.join(donne.dims)}")

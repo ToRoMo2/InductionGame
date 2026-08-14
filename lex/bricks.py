@@ -1,4 +1,4 @@
-"""Les trois familles de briques (phase 0).
+"""Les quatre familles de briques.
 
 Une *brique* est une famille ; une *clause* est une brique dont les parametres
 sont lies. Le catalogue de clauses est engendre a partir du registre
@@ -7,9 +7,10 @@ d'attributs : il n'y a nulle part une liste de regles ecrite a la main.
 Les clauses sont frozen (donc hachables) parce que le validateur les utilise
 comme cles pour regrouper des lois par comportement.
 
-    absolue    : porte sur la carte posee, seule.
-    relation   : compare la carte posee a la derniere carte acceptee.
-    sequence   : interdit une repetition sur la fin de la ligne.
+    absolue        : porte sur la carte posee, seule.
+    relation       : compare la carte posee a la derniere carte acceptee.
+    sequence       : interdit une repetition sur la fin de la ligne.
+    conditionnelle : « si la precedente a A = x, alors la carte a B = y ».
 """
 
 from __future__ import annotations
@@ -59,6 +60,14 @@ class Clause:
                 suite += 1
             return suite < maxi
 
+        if self.famille == "conditionnelle":
+            a_si, v_si, a_alors, v_alors = self.params
+            if not ligne:
+                return True
+            if ATTRIBUTS[a_si].get(ligne[-1]) != v_si:
+                return True  # la condition ne se declenche pas : la clause se tait
+            return ATTRIBUTS[a_alors].get(carte) == v_alors
+
         raise ValueError(f"famille inconnue : {self.famille}")
 
     # --- lecture humaine ---
@@ -67,6 +76,8 @@ class Clause:
     def attrs(self) -> tuple[str, ...]:
         if self.famille == "relation" and self.params[1] == "avance":
             return ("rang",)
+        if self.famille == "conditionnelle":
+            return (self.params[0], self.params[2])
         return (self.params[0],)
 
     def texte(self) -> str:
@@ -97,6 +108,13 @@ class Clause:
             if maxi == 1:
                 return f"jamais deux « {valeur} » ({attr.court}) d'affilée"
             return f"jamais plus de {maxi} « {valeur} » ({attr.court}) d'affilée"
+
+        if self.famille == "conditionnelle":
+            a_si, v_si, a_alors, v_alors = self.params
+            return (
+                f"si la précédente a {ATTRIBUTS[a_si].libelle} « {v_si} », "
+                f"alors {ATTRIBUTS[a_alors].libelle} est « {v_alors} »"
+            )
 
         raise ValueError(f"famille inconnue : {self.famille}")
 
@@ -144,5 +162,26 @@ def catalogue(dims: Sequence[str]) -> tuple[Clause, ...]:
         for valeur in ATTRIBUTS[nom].domaine:
             for maxi in (1, 2):
                 out.append(Clause("sequence", (nom, valeur, maxi)))
+
+    # --- conditionnelle ---
+    # « si la precedente a A = x, alors la carte a B = y ». Quand la condition
+    # ne se declenche pas, la clause se tait : elle est donc tres permissive et
+    # ne survit jamais seule au calibrage. Elle vit en seconde clause, ce qui
+    # est exactement sa place — le §5 la classe en difficulte elevee.
+    #
+    # C'est le levier de variete, et la raison est mesuree : la grammaire a
+    # trois familles ne comptait que 22 FORMES de regle pour 1653 lois, et un
+    # attribut de plus n'en ajoute que 4. Une famille, elle, multiplie.
+    paires = [
+        (nom, v)
+        for nom in CATEGORIELS
+        if nom in dims
+        for v in ATTRIBUTS[nom].domaine
+    ]
+    for a_si, v_si in paires:
+        for a_alors, v_alors in paires:
+            if (a_si, v_si) == (a_alors, v_alors):
+                continue  # « si X alors X » ne dit rien de neuf
+            out.append(Clause("conditionnelle", (a_si, v_si, a_alors, v_alors)))
 
     return tuple(out)

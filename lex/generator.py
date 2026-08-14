@@ -51,9 +51,24 @@ def generer(
     rng = random.Random(seed ^ 0x5EED)
     cat = catalogue(dims)
 
+    # Tirage par FAMILLE puis par clause, jamais uniformement dans le catalogue.
+    # Les familles n'ont pas du tout le meme nombre d'instances : la
+    # conditionnelle en represente 70 % a elle seule. Un tirage uniforme sur les
+    # clauses donnait 50 % de conditionnelles et une sequence sur vingt-quatre —
+    # la nouvelle famille etouffait les anciennes. Or le joueur vit des
+    # familles, pas des clauses : c'est la famille qui doit etre equiprobable.
+    par_famille: dict[str, list] = {}
+    for c in cat:
+        par_famille.setdefault(c.famille, []).append(c)
+    familles = sorted(par_famille)
+
     for taille in range(n_clauses, 0, -1):
         for _ in range(tentatives):
-            clauses = tuple(rng.sample(cat, taille))
+            clauses: tuple = ()
+            while len(clauses) < taille:
+                c = rng.choice(par_famille[rng.choice(familles)])
+                if c not in clauses:
+                    clauses += (c,)
             loi = Loi(clauses)
 
             # La carte de depart fait partie de ce qu'on valide. Une meme loi

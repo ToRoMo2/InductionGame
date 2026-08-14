@@ -3,9 +3,30 @@
 Prototype console du jeu d'induction **LEX**. Voir
 `cahier-des-charges-jeu-induction.md` pour la spec complète.
 
-Périmètre actuel : **§13 uniquement** — phase 0. Une manche isolée, terminal,
-texte brut, stdlib seule. Pas de run, pas d'objets, pas de méta-progression,
-pas d'escalade de difficulté.
+Périmètre actuel : phase 0 livrée (§13), **étape 2 en cours** (§14) — la
+grammaire s'élargit. Une manche isolée, terminal, texte brut, stdlib seule.
+Pas de run, pas d'objets, pas de méta-progression, pas d'escalade.
+
+## La grammaire
+
+Quatre familles de briques, une loi en combine deux :
+
+| famille | exemple |
+|---|---|
+| absolue | le dos n'est jamais « ivoire » |
+| relationnelle | la couleur diffère de celle de la carte précédente |
+| séquentielle | jamais deux « pair » d'affilée |
+| conditionnelle | si la précédente a l'enseigne « ♣ », alors le pli est « lisse » |
+
+**L'élargissement se fait par famille, jamais par attribut**, et c'est mesuré :
+le joueur n'apprend pas les lois, il apprend les **formes**. Un attribut de plus
+n'ajoute que 4 formes ; une famille multiplie. L'ajout de la conditionnelle a
+fait passer la grammaire de 22 à 47 formes, et le plancher du solveur parfait
+de 18 à 19 essais seulement — plus de variété sans plus de difficulté.
+
+Le tirage est **équiprobable par famille**, pas par clause : la conditionnelle
+représente 70 % du catalogue à elle seule, et un tirage uniforme sur les clauses
+l'aurait laissée étouffer les trois autres.
 
 ## Jouer
 
@@ -35,7 +56,7 @@ motifs de rejet : c'est l'outil pour bouger les seuils de `lex/validator.py`.
 |---|---|
 | `cards.py` | cartes, registre d'attributs, lecture des descriptions |
 | `probe.py` | la sonde : description, jumelle, tarif |
-| `bricks.py` | les 3 familles de briques → catalogue de clauses |
+| `bricks.py` | les 4 familles de briques → catalogue de clauses |
 | `law.py` | la loi (conjonction) et son évaluateur |
 | `generator.py` | propose-and-test ; rend la loi **et** le pool validé avec elle |
 | `validator.py` | permissivité, anti-impasse, anti-masquage, identifiabilité |
@@ -110,13 +131,8 @@ clauses absolues mordent, donc la contrainte est légère — mais sans elle, la
 position 0 de la ligne peut contredire la loi et le joueur rejette une
 hypothèse correcte à cause de la carte qu'on lui a donnée (§3 pilier 3).
 
-Les cartes refusées sont listées avec le **numéro d'essai** et la **position de
-la ligne** au moment du refus. Un refus reste vrai pour toujours dans son
-contexte, et le contexte change à chaque acceptation. Comme la ligne ne fait que
-croître, la position reste valable et pointe sans ambiguïté vers la carte qui
-précédait — ce qu'il faut pour vérifier une hypothèse relationnelle. Le jeu ne signale jamais qu'une
-carte refusée passerait maintenant — ce serait une information sur le contexte
-courant que le joueur n'a pas payée (§6).
+Le jeu ne signale jamais qu'une carte refusée passerait maintenant — ce serait
+une information sur le contexte courant que le joueur n'a pas payée (§6).
 
 ## L'affichage
 
