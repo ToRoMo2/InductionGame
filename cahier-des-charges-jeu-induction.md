@@ -139,7 +139,11 @@ La distinction qui compte n'est pas classique / caché, c'est **indépendant / d
 ### Types de briques
 
 - **Absolue** : « pas de carte au dos jaune »
-- **Relationnelle** : « rang supérieur au précédent », « enseigne différente »
+- **Relationnelle** : « le rang monte », « enseigne différente »
+
+  > **Tranché en jouant — une seule amplitude de pas, pas cinq.** Le catalogue proposait « le rang avance de 1 à k » pour k de 4 à 8. La difficulté n'était pas de *déduire* que le rang avance — ça se repère en deux coups — mais de **déclarer** : il fallait la borne exacte pour choisir la bonne entrée du menu, soit une inférence imbriquée dans une autre, et une dizaine de tests qu'on n'entreprend que si on soupçonne déjà la réponse. Il ne reste que « monte » et « descend », d'un pas de 1 à 6 rangs.
+  >
+  > **Le bouclage n'est pas un caprice.** Un « strictement supérieur » créerait une impasse dès qu'un roi est accepté, ce que le §5.4 interdit. Avec le pas cyclique, 46 % du paquet reste jouable dans *tous* les contextes, roi compris.
 - **Séquentielle** : « pas deux nombres impairs d'affilée »
 - **Conditionnelle** (difficulté élevée) : « si la précédente est rouge, alors… »
 

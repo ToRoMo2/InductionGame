@@ -7,7 +7,7 @@ import random
 import textwrap
 from typing import Sequence
 
-from .bricks import AVANCES, Clause
+from .bricks import Clause
 from .cards import ATTRIBUTS, CATEGORIELS, Carte, lire_description
 from .game import ESSAIS, Partie, Phase, nouvelle_partie
 from .law import Loi
@@ -406,16 +406,12 @@ def construire_clause(dims: Sequence[str]) -> Clause | None:
         if nom == "rang":
             mode = _choisir("relation", [
                 ("different", "le rang diffère du précédent"),
-                ("avance", "le rang avance de 1 à k rangs (l'as suit le roi)"),
+                ("monte", "le rang monte (après le roi on repart à l'as)"),
+                ("descend", "le rang descend (avant l'as on repart au roi)"),
             ])
             if mode is None:
                 return None
-            if mode == "avance":
-                k = _choisir("k", [(str(v), f"de 1 à {v} rangs") for v in AVANCES])
-                if k is None:
-                    return None
-                return Clause("relation", ("rang", "avance", int(k)))
-            return Clause("relation", ("rang", "different", None))
+            return Clause("relation", ("rang", mode, None))
         mode = _choisir("relation", [
             ("egal", f"{ATTRIBUTS[nom].libelle} est identique au précédent"),
             ("different", f"{ATTRIBUTS[nom].libelle} diffère du précédent"),

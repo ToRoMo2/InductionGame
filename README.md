@@ -14,7 +14,7 @@ Quatre familles de briques, une loi en combine deux :
 | famille | exemple |
 |---|---|
 | absolue | le dos n'est jamais « ivoire » |
-| relationnelle | la couleur diffère de celle de la carte précédente |
+| relationnelle | la couleur diffère de celle de la carte précédente · le rang monte |
 | séquentielle | jamais deux « pair » d'affilée |
 | conditionnelle | si la précédente a l'enseigne « ♣ », alors le pli est « lisse » |
 

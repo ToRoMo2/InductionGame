@@ -21,9 +21,17 @@ from typing import Sequence
 
 from .cards import ATTRIBUTS, CATEGORIELS, Carte
 
-# Cadence de l'avance cyclique du rang. k=6 donne 6/13 = 46 % de permissivite,
-# identique dans tous les contextes : cette brique ne cree jamais d'impasse.
-AVANCES = (4, 5, 6, 7, 8)
+# Amplitude du pas de rang. Six rangs sur treize = 46 % de permissivite,
+# identique dans TOUS les contextes : la brique ne cree jamais d'impasse, ce
+# qu'un « strictement superieur » ferait des qu'un roi est accepte (§5.4).
+#
+# Une seule amplitude, et non cinq comme avant. Remonte en jouant : la
+# difficulte n'etait pas de deduire que le rang avance, elle etait de DECLARER
+# — il fallait la borne exacte pour choisir la bonne entree du menu parmi cinq,
+# soit une inference imbriquee dans une autre. Le sens (monte / descend) se
+# repere en deux coups ; l'amplitude demandait dix tests qu'on ne fait que si
+# on soupconne deja la reponse.
+PAS = 6
 
 
 @dataclass(frozen=True)
@@ -43,8 +51,10 @@ class Clause:
             if not ligne:
                 return True  # rien a comparer : la clause ne dit rien
             prec = ligne[-1]
-            if mode == "avance":
-                return (carte.rang - prec.rang) % 13 in range(1, arg + 1)
+            if mode == "monte":
+                return (carte.rang - prec.rang) % 13 in range(1, PAS + 1)
+            if mode == "descend":
+                return (prec.rang - carte.rang) % 13 in range(1, PAS + 1)
             a, b = ATTRIBUTS[nom].get(carte), ATTRIBUTS[nom].get(prec)
             return a == b if mode == "egal" else a != b
 
@@ -74,7 +84,7 @@ class Clause:
 
     @property
     def attrs(self) -> tuple[str, ...]:
-        if self.famille == "relation" and self.params[1] == "avance":
+        if self.famille == "relation" and self.params[1] in ("monte", "descend"):
             return ("rang",)
         if self.famille == "conditionnelle":
             return (self.params[0], self.params[2])
@@ -92,10 +102,15 @@ class Clause:
 
         if self.famille == "relation":
             nom, mode, arg = self.params
-            if mode == "avance":
+            if mode == "monte":
                 return (
-                    f"le rang avance de 1 à {arg} rangs par rapport à la carte "
-                    f"précédente (après le roi on repart à l'as)"
+                    f"le rang monte de 1 à {PAS} rangs "
+                    f"(après le roi on repart à l'as)"
+                )
+            if mode == "descend":
+                return (
+                    f"le rang descend de 1 à {PAS} rangs "
+                    f"(avant l'as on repart au roi)"
                 )
             attr = ATTRIBUTS[nom]
             if mode == "egal":
@@ -152,8 +167,8 @@ def catalogue(dims: Sequence[str]) -> tuple[Clause, ...]:
         out.append(Clause("relation", (nom, "different", None)))
     if "rang" in dims:
         out.append(Clause("relation", ("rang", "different", None)))
-        for k in AVANCES:
-            out.append(Clause("relation", ("rang", "avance", k)))
+        out.append(Clause("relation", ("rang", "monte", None)))
+        out.append(Clause("relation", ("rang", "descend", None)))
 
     # --- sequence ---
     for nom in CATEGORIELS:
